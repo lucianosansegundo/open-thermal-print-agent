@@ -13,6 +13,8 @@ public sealed class AgentOptions
     public long MaxRequestBodyBytes { get; init; } = 64 * 1024;
 
     public AgentSecurityOptions Security { get; init; } = new();
+
+    public AgentQueueOptions Queue { get; init; } = new();
 }
 
 public sealed class AgentSecurityOptions
@@ -22,4 +24,15 @@ public sealed class AgentSecurityOptions
     public string? Token { get; init; }
 
     public string HeaderName { get; init; } = "X-OpenThermalPrintAgent-Token";
+}
+
+public sealed class AgentQueueOptions
+{
+    public bool Enabled { get; init; }
+
+    public int RetryAttempts { get; init; } = 2;
+
+    public int RetryDelayMilliseconds { get; init; } = 500;
+
+    public int MaxRecentJobs { get; init; } = 100;
 }

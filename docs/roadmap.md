@@ -31,6 +31,7 @@
 - Inno Setup installer configuration for Windows.
 - QR code, CODE128 barcode, and pre-rasterized image command support.
 - WebSocket API for health and print messages.
+- Optional in-memory local print queue with retry and recent job status.
 
 ## Pending Manual Validation
 
@@ -42,6 +43,7 @@
 - Additional hardware compatibility reports.
 - Physical validation of encoding profiles per printer model.
 - Tray UI remains pending.
+- Persistent queue storage remains pending.
 
 ## Production Backlog
 
@@ -50,8 +52,8 @@
 - Auto-start.
 - Auto-update.
 - Pairing flow and local token.
-- WebSocket API.
-- Local job queue and retry policy.
+- Advanced WebSocket lifecycle events.
+- Persistent local job queue and advanced retry policy.
 - Backend polling connector.
 - Linux and macOS adapters.
 - Broader barcode formats and PNG/JPEG logo preprocessing.

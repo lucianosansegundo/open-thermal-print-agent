@@ -15,6 +15,7 @@ using OpenThermalPrintAgent.EscPos;
 using OpenThermalPrintAgent.Host;
 using OpenThermalPrintAgent.Host.Configuration;
 using OpenThermalPrintAgent.Host.Json;
+using OpenThermalPrintAgent.Host.Queue;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseWindowsService(options =>
@@ -52,6 +53,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSingleton<EscPosRenderer>();
+builder.Services.AddSingleton<PrintJobQueue>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<PrintJobQueue>());
 builder.Services.AddPlatformPrinting();
 
 var app = builder.Build();
@@ -95,6 +98,8 @@ static void MapEndpoints(IEndpointRouteBuilder endpoints)
         return Results.Json(AgentError.UnsupportedPlatform(exception.Message), statusCode: StatusCodes.Status501NotImplemented);
     }
 });
+
+    endpoints.MapGet("/jobs/recent", (PrintJobQueue queue) => Results.Ok(queue.GetRecentJobs()));
 
     endpoints.MapPost("/print/test", (
     HttpRequest httpRequest,
@@ -171,6 +176,18 @@ static void MapEndpoints(IEndpointRouteBuilder endpoints)
     if (validationError is not null)
     {
         return ErrorResult(validationError);
+    }
+
+    if (options.Value.Queue.Enabled)
+    {
+        var queued = services.GetRequiredService<PrintJobQueue>().Enqueue(request);
+        return Results.Ok(new PrintJobResponse
+        {
+            JobId = queued.JobId,
+            Status = queued.Status,
+            PrinterName = queued.PrinterName,
+            PrintedAt = queued.UpdatedAt
+        });
     }
 
     if (!TryGetService<IPrinterProvider>(services, out var printerProvider, out var unsupported) ||
