@@ -17,6 +17,24 @@ The legacy MVP endpoints without `/api/v1` remain available as compatibility ali
 
 Future stable integrations should use `/api/v1`.
 
+## Authentication
+
+Token authentication is optional and disabled by default for local development.
+
+When `Agent:Security:RequireToken` is enabled, print endpoints require one of these headers:
+
+```http
+X-OpenThermalPrintAgent-Token: your-local-token
+```
+
+or:
+
+```http
+Authorization: Bearer your-local-token
+```
+
+`GET /api/v1/health` and `GET /api/v1/printers` remain available without a token in the MVP.
+
 ## Compatibility Contract
 
 The API version is part of the URL path. Version `v1` is the MVP compatibility contract.
@@ -181,3 +199,9 @@ Known MVP error codes:
 - `print_failed`
 - `access_denied`
 - `unsupported_platform`
+
+Authentication-related responses:
+
+- Missing print token: `401`
+- Invalid print token: `403`
+- Token required but not configured: `403`

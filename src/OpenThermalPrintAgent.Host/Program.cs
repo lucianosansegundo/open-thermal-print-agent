@@ -2,6 +2,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Options;
 using OpenThermalPrintAgent.Core.Errors;
 using OpenThermalPrintAgent.Core.Models;
 using OpenThermalPrintAgent.Core.Printing;
@@ -85,10 +86,18 @@ static void MapEndpoints(IEndpointRouteBuilder endpoints)
 });
 
     endpoints.MapPost("/print/test", (
+    HttpRequest httpRequest,
     TestPrintRequest request,
     EscPosRenderer renderer,
-    IServiceProvider services) =>
+    IServiceProvider services,
+    IOptions<AgentOptions> options) =>
 {
+    var tokenError = ValidatePrintToken(httpRequest, options.Value);
+    if (tokenError is not null)
+    {
+        return tokenError;
+    }
+
     var validationError = PrintJobValidator.Validate(request);
     if (validationError is not null)
     {
@@ -135,10 +144,18 @@ static void MapEndpoints(IEndpointRouteBuilder endpoints)
 });
 
     endpoints.MapPost("/print", (
+    HttpRequest httpRequest,
     PrintJobRequest request,
     EscPosRenderer renderer,
-    IServiceProvider services) =>
+    IServiceProvider services,
+    IOptions<AgentOptions> options) =>
 {
+    var tokenError = ValidatePrintToken(httpRequest, options.Value);
+    if (tokenError is not null)
+    {
+        return tokenError;
+    }
+
     var validationError = PrintJobValidator.Validate(request);
     if (validationError is not null)
     {
@@ -188,6 +205,49 @@ static void MapEndpoints(IEndpointRouteBuilder endpoints)
 static string GetAgentVersion()
 {
     return Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.1.0";
+}
+
+static IResult? ValidatePrintToken(HttpRequest request, AgentOptions options)
+{
+    if (!options.Security.RequireToken)
+    {
+        return null;
+    }
+
+    if (string.IsNullOrWhiteSpace(options.Security.Token))
+    {
+        return Results.Json(
+            new AgentError { Code = ErrorCodes.AccessDenied, Message = "Print token is required by configuration but no token is configured." },
+            statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    var providedToken = GetProvidedToken(request, options.Security.HeaderName);
+    if (string.IsNullOrWhiteSpace(providedToken))
+    {
+        return Results.Json(
+            new AgentError { Code = ErrorCodes.AccessDenied, Message = "Print token is required." },
+            statusCode: StatusCodes.Status401Unauthorized);
+    }
+
+    return string.Equals(providedToken, options.Security.Token, StringComparison.Ordinal)
+        ? null
+        : Results.Json(
+            new AgentError { Code = ErrorCodes.AccessDenied, Message = "Print token is invalid." },
+            statusCode: StatusCodes.Status403Forbidden);
+}
+
+static string? GetProvidedToken(HttpRequest request, string headerName)
+{
+    if (request.Headers.TryGetValue(headerName, out var headerToken))
+    {
+        return headerToken.ToString();
+    }
+
+    var authorization = request.Headers.Authorization.ToString();
+    const string bearerPrefix = "Bearer ";
+    return authorization.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase)
+        ? authorization[bearerPrefix.Length..].Trim()
+        : null;
 }
 
 static bool TryGetService<T>(IServiceProvider services, out T service, out AgentError unsupported)

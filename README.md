@@ -31,6 +31,8 @@ http://127.0.0.1:17890
 
 Configuration is in `src/OpenThermalPrintAgent.Host/appsettings.json`.
 
+Print endpoints can optionally require a local token. Token security is disabled by default for development. Enable `Agent:Security:RequireToken` and set `Agent:Security:Token` to require either `X-OpenThermalPrintAgent-Token` or `Authorization: Bearer <token>` on print requests.
+
 ## Endpoints
 
 Canonical API v1 endpoints:
@@ -71,6 +73,16 @@ $body = @{
 } | ConvertTo-Json
 
 Invoke-RestMethod http://127.0.0.1:17890/api/v1/print/test -Method Post -ContentType "application/json" -Body $body
+```
+
+With token security enabled:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:17890/api/v1/print/test `
+  -Method Post `
+  -ContentType "application/json" `
+  -Headers @{ "X-OpenThermalPrintAgent-Token" = "your-local-token" } `
+  -Body $body
 ```
 
 Print a generic ESC/POS job:

@@ -26,6 +26,7 @@
 - Hardware compatibility matrix and printer report template.
 - Windows printer discovery with driver, port, default, queue status, and offline diagnostics.
 - Configurable text encoding profiles: `latin1`, `cp850`, and `cp858`.
+- Optional local token requirement for print endpoints.
 
 ## Pending Manual Validation
 
