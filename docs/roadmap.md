@@ -28,6 +28,7 @@
 - Configurable text encoding profiles: `latin1`, `cp850`, and `cp858`.
 - Optional local token requirement for print endpoints.
 - Windows Service hosting support for persistent deployments.
+- Inno Setup installer configuration for Windows.
 
 ## Pending Manual Validation
 
@@ -42,7 +43,7 @@
 
 ## Production Backlog
 
-- Windows installer.
+- Signed Windows installer and release pipeline.
 - Tray application.
 - Auto-start.
 - Auto-update.
