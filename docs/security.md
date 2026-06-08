@@ -19,14 +19,38 @@ The agent does not allow all origins by default.
 
 The host limits request body size. The MVP does not accept arbitrary file paths and does not execute arbitrary commands.
 
+## Optional Print Token
+
+Print token security is optional and disabled by default for development.
+
+Configuration:
+
+```json
+{
+  "Agent": {
+    "Security": {
+      "RequireToken": true,
+      "Token": "change-this-local-token",
+      "HeaderName": "X-OpenThermalPrintAgent-Token"
+    }
+  }
+}
+```
+
+When enabled, print endpoints require either:
+
+- `X-OpenThermalPrintAgent-Token: change-this-local-token`
+- `Authorization: Bearer change-this-local-token`
+
+`/api/v1/health` remains open with minimal agent information. `/api/v1/printers` remains open in the MVP so local setup tools can discover printers, but production deployments may choose to protect it later.
+
 ## Risks
 
-A local print agent can be abused by any allowed web origin to print unwanted content or trigger a drawer kick. Production deployments should add pairing, local tokens, user confirmation during setup, audit logs, and stronger policy controls.
+A local print agent can be abused by any allowed web origin to print unwanted content or trigger a drawer kick if token security is disabled or the token is exposed. Production deployments should add pairing, origin-specific permissions, user confirmation during setup, audit logs, and stronger policy controls.
 
 ## Future Security Roadmap
 
 - Pairing flow between frontend and local agent.
-- Local access token.
 - Origin-specific permissions.
 - Signed job metadata.
 - Exportable audit logs.
