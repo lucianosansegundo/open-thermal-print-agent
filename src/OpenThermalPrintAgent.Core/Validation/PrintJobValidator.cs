@@ -8,6 +8,9 @@ public static class PrintJobValidator
     public const int MaxContentItems = 500;
     public const int MaxTextLength = 2048;
     public const int MaxCopies = 10;
+    public const int MaxQrCodeLength = 1024;
+    public const int MaxBarcodeLength = 128;
+    public const int MaxRasterBytes = 64 * 1024;
 
     public static AgentError? Validate(PrintJobRequest request)
     {
@@ -105,6 +108,11 @@ public static class PrintJobValidator
 
         ValidateCutMode(command.Mode, $"content[{index}].mode", errors);
 
+        if (command.BarcodeType is not null && !Enum.IsDefined(command.BarcodeType.Value))
+        {
+            errors.Add($"content[{index}].barcodeType is invalid.");
+        }
+
         switch (command.Type)
         {
             case PrintCommandType.Text:
@@ -126,6 +134,73 @@ public static class PrintJobValidator
                 }
 
                 break;
+
+            case PrintCommandType.QrCode:
+                ValidateRequiredValue(command, index, "QR code", MaxQrCodeLength, errors);
+                break;
+
+            case PrintCommandType.Barcode:
+                ValidateRequiredValue(command, index, "barcode", MaxBarcodeLength, errors);
+                if (command.BarcodeType is null)
+                {
+                    errors.Add($"content[{index}].barcodeType is required for barcode commands.");
+                }
+
+                break;
+
+            case PrintCommandType.Image:
+                ValidateRasterImage(command, index, errors);
+                break;
+        }
+    }
+
+    private static void ValidateRequiredValue(PrintContentCommand command, int index, string commandName, int maxLength, List<string> errors)
+    {
+        if (string.IsNullOrEmpty(command.Value))
+        {
+            errors.Add($"content[{index}].value is required for {commandName} commands.");
+        }
+        else if (command.Value.Length > maxLength)
+        {
+            errors.Add($"content[{index}].value must be at most {maxLength} characters for {commandName} commands.");
+        }
+    }
+
+    private static void ValidateRasterImage(PrintContentCommand command, int index, List<string> errors)
+    {
+        if (string.IsNullOrWhiteSpace(command.Data))
+        {
+            errors.Add($"content[{index}].data is required for image commands.");
+            return;
+        }
+
+        if (command.WidthBytes is null or < 1 or > 255)
+        {
+            errors.Add($"content[{index}].widthBytes must be between 1 and 255 for image commands.");
+        }
+
+        if (command.HeightDots is null or < 1 or > 4095)
+        {
+            errors.Add($"content[{index}].heightDots must be between 1 and 4095 for image commands.");
+        }
+
+        try
+        {
+            var bytes = Convert.FromBase64String(command.Data);
+            if (bytes.Length > MaxRasterBytes)
+            {
+                errors.Add($"content[{index}].data must decode to at most {MaxRasterBytes} bytes.");
+            }
+
+            if (command.WidthBytes is not null && command.HeightDots is not null &&
+                bytes.Length != command.WidthBytes.Value * command.HeightDots.Value)
+            {
+                errors.Add($"content[{index}].data length must equal widthBytes * heightDots.");
+            }
+        }
+        catch (FormatException)
+        {
+            errors.Add($"content[{index}].data must be valid base64 for image commands.");
         }
     }
 }

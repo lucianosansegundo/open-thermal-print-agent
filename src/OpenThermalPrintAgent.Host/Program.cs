@@ -35,6 +35,7 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new PrintCommandTypeJsonConverter());
     options.SerializerOptions.Converters.Add(new CutModeJsonConverter());
     options.SerializerOptions.Converters.Add(new EncodingProfileJsonConverter());
+    options.SerializerOptions.Converters.Add(new BarcodeTypeJsonConverter());
 });
 
 builder.Services.AddCors(options =>

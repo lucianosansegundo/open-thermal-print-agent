@@ -11,6 +11,9 @@ The MVP renderer supports a small, predictable ESC/POS subset.
 - Feed N lines.
 - Configurable paper cut modes.
 - Cash drawer kick using the common `ESC p` command.
+- QR code command generation.
+- CODE128 barcode command generation.
+- Raster image command generation from pre-rasterized base64 data.
 
 ## Paper Width
 
@@ -56,11 +59,29 @@ Printer firmware and configured code pages may differ. The MVP encodes bytes for
 
 ## Limitations
 
-- No QR codes.
-- No barcodes.
-- No images or logos.
+- No PNG/JPEG decoding. Image/logo input must be pre-rasterized bytes.
 - No printer status reads.
 - No paper out/offline detection.
 - No full-width layout engine.
 - No automatic code page negotiation.
 - No ESC/POS code page selection command emission yet.
+
+## QR Codes, Barcodes, And Raster Images
+
+QR codes use the common ESC/POS `GS ( k` command sequence:
+
+- Select model 2.
+- Set module size 4.
+- Set error correction level L.
+- Store data.
+- Print symbol.
+
+Barcodes currently support CODE128 using `GS k 73 n data`. If the value does not start with a CODE128 subset marker, the renderer prefixes `{B`.
+
+Raster images use `GS v 0` and require:
+
+- `data`: base64-encoded raster bytes.
+- `widthBytes`: image width in bytes.
+- `heightDots`: image height in dots.
+
+The API intentionally does not accept local file paths for logos or images.

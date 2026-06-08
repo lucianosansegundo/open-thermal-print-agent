@@ -15,6 +15,9 @@ public sealed class PrintCommandTypeJsonConverter : JsonConverter<PrintCommandTy
             "feed" => PrintCommandType.Feed,
             "cut" => PrintCommandType.Cut,
             "opendrawer" or "openDrawer" or "drawer" => PrintCommandType.OpenDrawer,
+            "qrcode" or "qrCode" or "qr" => PrintCommandType.QrCode,
+            "barcode" => PrintCommandType.Barcode,
+            "image" or "rasterImage" => PrintCommandType.Image,
             _ => (PrintCommandType)(-1)
         };
     }
@@ -27,6 +30,9 @@ public sealed class PrintCommandTypeJsonConverter : JsonConverter<PrintCommandTy
             PrintCommandType.Feed => "feed",
             PrintCommandType.Cut => "cut",
             PrintCommandType.OpenDrawer => "openDrawer",
+            PrintCommandType.QrCode => "qrCode",
+            PrintCommandType.Barcode => "barcode",
+            PrintCommandType.Image => "image",
             _ => value.ToString()
         });
     }

@@ -19,6 +19,8 @@ The agent does not allow all origins by default.
 
 The host limits request body size. The MVP does not accept arbitrary file paths and does not execute arbitrary commands.
 
+Image/logo commands accept base64 raster data only. The API does not read local files from paths supplied by clients.
+
 ## Optional Print Token
 
 Print token security is optional and disabled by default for development.

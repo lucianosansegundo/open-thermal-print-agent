@@ -5,5 +5,8 @@ public enum PrintCommandType
     Text,
     Feed,
     Cut,
-    OpenDrawer
+    OpenDrawer,
+    QrCode,
+    Barcode,
+    Image
 }

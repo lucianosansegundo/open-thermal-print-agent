@@ -135,6 +135,40 @@ public sealed class EscPosRendererTests
     }
 
     [Fact]
+    public void RenderWritesQrCodeCommands()
+    {
+        var bytes = _renderer.Render(JobWith(
+            new PrintContentCommand { Type = PrintCommandType.QrCode, Value = "https://example.test" }));
+
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00));
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30));
+    }
+
+    [Fact]
+    public void RenderWritesCode128BarcodeCommand()
+    {
+        var bytes = _renderer.Render(JobWith(
+            new PrintContentCommand { Type = PrintCommandType.Barcode, BarcodeType = BarcodeType.Code128, Value = "ABC123" }));
+
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x6B, 0x49, 0x08, '{', 'B', 'A', 'B', 'C', '1', '2', '3'));
+    }
+
+    [Fact]
+    public void RenderWritesRasterImageCommand()
+    {
+        var bytes = _renderer.Render(JobWith(
+            new PrintContentCommand
+            {
+                Type = PrintCommandType.Image,
+                Data = Convert.ToBase64String([0xFF, 0x00]),
+                WidthBytes = 1,
+                HeightDots = 2
+            }));
+
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x76, 0x30, 0x00, 0x01, 0x00, 0x02, 0x00, 0xFF, 0x00));
+    }
+
+    [Fact]
     public void RenderRejectsInvalidPaperWidth()
     {
         var request = JobWith(new PrintContentCommand { Type = PrintCommandType.Text, Value = "Hello" }) with

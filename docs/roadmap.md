@@ -29,6 +29,7 @@
 - Optional local token requirement for print endpoints.
 - Windows Service hosting support for persistent deployments.
 - Inno Setup installer configuration for Windows.
+- QR code, CODE128 barcode, and pre-rasterized image command support.
 
 ## Pending Manual Validation
 
@@ -52,7 +53,7 @@
 - Local job queue and retry policy.
 - Backend polling connector.
 - Linux and macOS adapters.
-- QR codes, barcodes, and logos.
+- Broader barcode formats and PNG/JPEG logo preprocessing.
 - ESC/POS code page selection commands and broader internationalization.
 - Better physical printer status, offline detection, and paper-out detection.
 - Exportable logs.

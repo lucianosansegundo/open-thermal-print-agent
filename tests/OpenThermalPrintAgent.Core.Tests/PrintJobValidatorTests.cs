@@ -128,6 +128,69 @@ public sealed class PrintJobValidatorTests
         Assert.Contains(error.Details, detail => detail.Contains("options.encodingProfile", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ValidateRejectsBarcodeWithoutBarcodeType()
+    {
+        var request = ValidRequest() with
+        {
+            Content = [new PrintContentCommand { Type = PrintCommandType.Barcode, Value = "ABC123" }]
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("barcodeType", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateRejectsRasterImageWithInvalidBase64()
+    {
+        var request = ValidRequest() with
+        {
+            Content =
+            [
+                new PrintContentCommand
+                {
+                    Type = PrintCommandType.Image,
+                    Data = "not-base64",
+                    WidthBytes = 1,
+                    HeightDots = 1
+                }
+            ]
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("valid base64", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateRejectsRasterImageWithWrongDataLength()
+    {
+        var request = ValidRequest() with
+        {
+            Content =
+            [
+                new PrintContentCommand
+                {
+                    Type = PrintCommandType.Image,
+                    Data = Convert.ToBase64String([0xFF]),
+                    WidthBytes = 2,
+                    HeightDots = 2
+                }
+            ]
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("widthBytes * heightDots", StringComparison.Ordinal));
+    }
+
     private static PrintJobRequest ValidRequest() => new()
     {
         PrinterName = "POS-80",
