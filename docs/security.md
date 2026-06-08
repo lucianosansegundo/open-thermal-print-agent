@@ -44,6 +44,12 @@ When enabled, print endpoints require either:
 - `X-OpenThermalPrintAgent-Token: change-this-local-token`
 - `Authorization: Bearer change-this-local-token`
 
+WebSocket clients must also provide the token when token security is enabled. Browser clients can use:
+
+```text
+ws://127.0.0.1:17890/api/v1/ws?token=change-this-local-token
+```
+
 `/api/v1/health` remains open with minimal agent information. `/api/v1/printers` remains open in the MVP so local setup tools can discover printers, but production deployments may choose to protect it later.
 
 ## Risks
