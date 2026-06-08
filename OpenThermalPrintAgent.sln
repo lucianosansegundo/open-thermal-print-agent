@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A52196CF-0012-4543-BA1E-E9729286F316}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Core", "src\OpenThermalPrintAgent.Core\OpenThermalPrintAgent.Core.csproj", "{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.EscPos", "src\OpenThermalPrintAgent.EscPos\OpenThermalPrintAgent.EscPos.csproj", "{E27DF47B-0CBA-45EA-B486-5BD0ECC03067}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Windows", "src\OpenThermalPrintAgent.Windows\OpenThermalPrintAgent.Windows.csproj", "{1601D55D-C9D5-46DF-93B8-8BB6C47362F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Host", "src\OpenThermalPrintAgent.Host\OpenThermalPrintAgent.Host.csproj", "{AEC4F2E2-90CA-464C-90EE-C9BFAC129015}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.EscPos.Tests", "tests\OpenThermalPrintAgent.EscPos.Tests\OpenThermalPrintAgent.EscPos.Tests.csproj", "{71BF0E1D-E289-46CB-8697-41E773D08F1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Core.Tests", "tests\OpenThermalPrintAgent.Core.Tests\OpenThermalPrintAgent.Core.Tests.csproj", "{19D956CC-B771-49D9-B920-9BC1E7307538}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E27DF47B-0CBA-45EA-B486-5BD0ECC03067}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E27DF47B-0CBA-45EA-B486-5BD0ECC03067}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E27DF47B-0CBA-45EA-B486-5BD0ECC03067}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E27DF47B-0CBA-45EA-B486-5BD0ECC03067}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1601D55D-C9D5-46DF-93B8-8BB6C47362F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1601D55D-C9D5-46DF-93B8-8BB6C47362F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1601D55D-C9D5-46DF-93B8-8BB6C47362F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1601D55D-C9D5-46DF-93B8-8BB6C47362F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEC4F2E2-90CA-464C-90EE-C9BFAC129015}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEC4F2E2-90CA-464C-90EE-C9BFAC129015}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEC4F2E2-90CA-464C-90EE-C9BFAC129015}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEC4F2E2-90CA-464C-90EE-C9BFAC129015}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71BF0E1D-E289-46CB-8697-41E773D08F1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71BF0E1D-E289-46CB-8697-41E773D08F1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71BF0E1D-E289-46CB-8697-41E773D08F1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71BF0E1D-E289-46CB-8697-41E773D08F1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19D956CC-B771-49D9-B920-9BC1E7307538}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19D956CC-B771-49D9-B920-9BC1E7307538}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19D956CC-B771-49D9-B920-9BC1E7307538}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19D956CC-B771-49D9-B920-9BC1E7307538}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA} = {A52196CF-0012-4543-BA1E-E9729286F316}
+		{E27DF47B-0CBA-45EA-B486-5BD0ECC03067} = {A52196CF-0012-4543-BA1E-E9729286F316}
+		{1601D55D-C9D5-46DF-93B8-8BB6C47362F1} = {A52196CF-0012-4543-BA1E-E9729286F316}
+		{AEC4F2E2-90CA-464C-90EE-C9BFAC129015} = {A52196CF-0012-4543-BA1E-E9729286F316}
+		{71BF0E1D-E289-46CB-8697-41E773D08F1D} = {CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}
+		{19D956CC-B771-49D9-B920-9BC1E7307538} = {CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}
+	EndGlobalSection
+EndGlobal
