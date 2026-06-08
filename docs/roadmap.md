@@ -20,6 +20,7 @@
 - Configured CORS with explicit local origins.
 - ESC/POS renderer for text, alignment, bold, feed, cut, and drawer kick.
 - ESC/POS cut modes: `none`, `full`, `partial`, `feedAndFull`, and `feedAndPartial`.
+- Versioned local API under `/api/v1` with legacy MVP aliases.
 - Windows raw printer adapter using installed printer queues.
 - Unit tests for renderer output and payload validation.
 

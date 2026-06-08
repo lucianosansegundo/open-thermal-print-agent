@@ -33,10 +33,14 @@ Configuration is in `src/OpenThermalPrintAgent.Host/appsettings.json`.
 
 ## Endpoints
 
-- `GET /health`
-- `GET /printers`
-- `POST /print/test`
-- `POST /print`
+Canonical API v1 endpoints:
+
+- `GET /api/v1/health`
+- `GET /api/v1/printers`
+- `POST /api/v1/print/test`
+- `POST /api/v1/print`
+
+Legacy MVP aliases without `/api/v1` are still available for compatibility.
 
 See [docs/api.md](docs/api.md) for request and response details.
 
@@ -45,13 +49,13 @@ See [docs/api.md](docs/api.md) for request and response details.
 Health:
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:17890/health
+Invoke-RestMethod http://127.0.0.1:17890/api/v1/health
 ```
 
 List printers:
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:17890/printers
+Invoke-RestMethod http://127.0.0.1:17890/api/v1/printers
 ```
 
 Print a test receipt:
@@ -65,7 +69,7 @@ $body = @{
   openDrawer = $false
 } | ConvertTo-Json
 
-Invoke-RestMethod http://127.0.0.1:17890/print/test -Method Post -ContentType "application/json" -Body $body
+Invoke-RestMethod http://127.0.0.1:17890/api/v1/print/test -Method Post -ContentType "application/json" -Body $body
 ```
 
 Print a generic ESC/POS job:
@@ -93,7 +97,7 @@ $body = @{
   )
 } | ConvertTo-Json -Depth 5
 
-Invoke-RestMethod http://127.0.0.1:17890/print -Method Post -ContentType "application/json" -Body $body
+Invoke-RestMethod http://127.0.0.1:17890/api/v1/print -Method Post -ContentType "application/json" -Body $body
 ```
 
 ## Compatibility Warnings

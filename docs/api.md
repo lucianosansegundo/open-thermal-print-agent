@@ -2,13 +2,28 @@
 
 The agent listens on `127.0.0.1` only. The default port is `17890`.
 
-Base URL:
+Canonical base URL:
 
 ```text
-http://127.0.0.1:17890
+http://127.0.0.1:17890/api/v1
 ```
 
-## GET /health
+The legacy MVP endpoints without `/api/v1` remain available as compatibility aliases:
+
+- `GET /health`
+- `GET /printers`
+- `POST /print/test`
+- `POST /print`
+
+Future stable integrations should use `/api/v1`.
+
+## Compatibility Contract
+
+The API version is part of the URL path. Version `v1` is the MVP compatibility contract.
+
+During the experimental MVP phase, breaking changes may still happen, but they should be documented in release notes. Once the project reaches a stable release, backwards-compatible changes should be preferred within `/api/v1`, and breaking changes should move to a new API version.
+
+## GET /api/v1/health
 
 Returns local agent status.
 
@@ -19,11 +34,15 @@ Response:
   "status": "ok",
   "name": "open-thermal-print-agent",
   "version": "0.1.0",
+  "agentVersion": "0.1.0",
+  "apiVersion": "v1",
   "platform": "Windows"
 }
 ```
 
-## GET /printers
+`version` is kept as a legacy alias for `agentVersion`.
+
+## GET /api/v1/printers
 
 Lists installed printers.
 
@@ -39,7 +58,7 @@ Response:
 ]
 ```
 
-## POST /print/test
+## POST /api/v1/print/test
 
 Prints a test receipt.
 
@@ -68,7 +87,7 @@ Response:
 }
 ```
 
-## POST /print
+## POST /api/v1/print
 
 Prints a generic ESC/POS job.
 
