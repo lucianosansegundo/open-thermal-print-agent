@@ -138,6 +138,8 @@ Request:
     { "type": "feed", "lines": 1 },
     { "type": "text", "value": "Product         $ 1.000", "align": "left" },
     { "type": "text", "value": "TOTAL           $ 1.000", "align": "left", "bold": true },
+    { "type": "qrCode", "value": "https://example.test/receipt/demo-001" },
+    { "type": "barcode", "barcodeType": "code128", "value": "ABC123" },
     { "type": "feed", "lines": 3 },
     { "type": "cut", "mode": "full" }
   ]
@@ -167,6 +169,27 @@ Supported encoding profiles:
 - `cp858`: IBM code page 858, similar to CP850 with euro symbol support.
 
 `encodingProfile` is optional. If omitted, the agent uses `latin1`.
+
+Supported QR/barcode/image commands:
+
+```json
+{ "type": "qrCode", "value": "https://example.test/receipt/demo-001" }
+```
+
+```json
+{ "type": "barcode", "barcodeType": "code128", "value": "ABC123" }
+```
+
+```json
+{
+  "type": "image",
+  "data": "base64-raster-data",
+  "widthBytes": 48,
+  "heightDots": 96
+}
+```
+
+Image commands accept pre-rasterized ESC/POS-compatible image bytes as base64. The API does not accept local file paths.
 
 Response:
 

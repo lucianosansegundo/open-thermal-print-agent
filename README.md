@@ -118,6 +118,8 @@ Invoke-RestMethod http://127.0.0.1:17890/api/v1/print -Method Post -ContentType 
 
 ESC/POS is a de facto standard, not a single fully consistent implementation. Paper cut, drawer kick, code pages, and accented characters may vary by printer model, driver, and Windows queue configuration. Use `cutMode` when a printer needs a specific cut command, and `encodingProfile` when accented characters or currency symbols need a different code page.
 
+QR codes, CODE128 barcodes, and pre-rasterized image/logo bytes are supported by the ESC/POS renderer. Image commands do not accept local file paths.
+
 No physical printer is required to run unit tests. Hardware tests must be performed manually.
 
 ## Documentation
