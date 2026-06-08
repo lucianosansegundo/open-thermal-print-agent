@@ -24,6 +24,7 @@
 - Windows raw printer adapter using installed printer queues.
 - Unit tests for renderer output and payload validation.
 - Hardware compatibility matrix and printer report template.
+- Windows printer discovery with driver, port, default, queue status, and offline diagnostics.
 
 ## Pending Manual Validation
 
@@ -47,6 +48,6 @@
 - Linux and macOS adapters.
 - QR codes, barcodes, and logos.
 - Better code pages and internationalization.
-- Printer status, offline detection, and paper-out detection.
+- Better physical printer status, offline detection, and paper-out detection.
 - Exportable logs.
 - Expanded hardware compatibility matrix.

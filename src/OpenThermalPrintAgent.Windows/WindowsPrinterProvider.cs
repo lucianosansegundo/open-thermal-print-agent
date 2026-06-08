@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using Microsoft.Win32;
+using System.Management;
 using OpenThermalPrintAgent.Core.Models;
 using OpenThermalPrintAgent.Core.Printing;
 
@@ -9,25 +9,18 @@ namespace OpenThermalPrintAgent.Windows;
 [SupportedOSPlatform("windows")]
 public sealed class WindowsPrinterProvider : IPrinterProvider
 {
-    private const string PrintersRegistryPath = @"SYSTEM\CurrentControlSet\Control\Print\Printers";
-    private const string UserWindowsRegistryPath = @"Software\Microsoft\Windows NT\CurrentVersion\Windows";
-
     public IReadOnlyList<PrinterInfo> ListPrinters()
     {
         EnsureWindows();
 
-        using var printersKey = Registry.LocalMachine.OpenSubKey(PrintersRegistryPath);
-        var defaultPrinterName = GetDefaultPrinterName();
+        using var searcher = new ManagementObjectSearcher(
+            "SELECT Name, DriverName, PortName, Default, PrinterStatus, DetectedErrorState, WorkOffline FROM Win32_Printer");
 
-        return printersKey?.GetSubKeyNames()
-            .Order(StringComparer.OrdinalIgnoreCase)
-            .Select(name => new PrinterInfo
-            {
-                Name = name,
-                IsDefault = string.Equals(name, defaultPrinterName, StringComparison.OrdinalIgnoreCase),
-                Capabilities = ["raw", "escpos"]
-            })
-            .ToArray() ?? [];
+        return searcher.Get()
+            .OfType<ManagementObject>()
+            .Select(CreatePrinterInfo)
+            .OrderBy(printer => printer.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     public bool PrinterExists(string printerName)
@@ -40,15 +33,34 @@ public sealed class WindowsPrinterProvider : IPrinterProvider
         return ListPrinters().Any(printer => string.Equals(printer.Name, printerName, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string? GetDefaultPrinterName()
+    private static PrinterInfo CreatePrinterInfo(ManagementBaseObject printer)
     {
-        using var userWindowsKey = Registry.CurrentUser.OpenSubKey(UserWindowsRegistryPath);
-        var deviceValue = userWindowsKey?.GetValue("Device") as string;
+        var printerStatus = GetUInt16(printer, "PrinterStatus");
+        var detectedErrorState = GetUInt16(printer, "DetectedErrorState");
+        var workOffline = GetBoolean(printer, "WorkOffline");
+        var status = WindowsPrinterStatusMapper.MapStatus(printerStatus, detectedErrorState, workOffline);
 
-        return string.IsNullOrWhiteSpace(deviceValue)
-            ? null
-            : deviceValue.Split(',', 2)[0];
+        return new PrinterInfo
+        {
+            Name = GetString(printer, "Name") ?? string.Empty,
+            IsDefault = GetBoolean(printer, "Default") ?? false,
+            DriverName = GetString(printer, "DriverName"),
+            PortName = GetString(printer, "PortName"),
+            Status = status,
+            IsOnline = WindowsPrinterStatusMapper.IsOnline(status),
+            WorkOffline = workOffline,
+            Capabilities = ["raw", "escpos"]
+        };
     }
+
+    private static string? GetString(ManagementBaseObject printer, string propertyName) =>
+        printer[propertyName] as string;
+
+    private static bool? GetBoolean(ManagementBaseObject printer, string propertyName) =>
+        printer[propertyName] as bool?;
+
+    private static ushort? GetUInt16(ManagementBaseObject printer, string propertyName) =>
+        printer[propertyName] as ushort?;
 
     private static void EnsureWindows()
     {

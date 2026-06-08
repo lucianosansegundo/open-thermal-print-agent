@@ -7,12 +7,15 @@
 3. Confirm the printer appears in the installed printer list.
 4. Print a Windows test page if the driver supports it.
 5. Use `GET /printers` to confirm the local agent can see the printer name.
+6. Check the returned `driverName`, `portName`, `status`, `isOnline`, and `workOffline` fields for diagnostics.
 
 ## Test Raw Printing
 
 Raw ESC/POS printing depends on the Windows queue and driver. Some drivers pass bytes directly to the device. Other drivers transform data and may break ESC/POS commands.
 
 Start with `POST /print/test`. If text prints but cut or drawer commands do not work, check the printer manual and driver mode.
+
+The agent can report Windows queue status, but queue status is not physical confirmation. A job can be accepted by the spooler while the printer is disconnected, out of paper, or using a driver that filters raw ESC/POS bytes.
 
 ## Common Issues
 

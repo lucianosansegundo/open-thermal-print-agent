@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Core.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Host.Tests", "tests\OpenThermalPrintAgent.Host.Tests\OpenThermalPrintAgent.Host.Tests.csproj", "{7698319B-CB81-4EB9-B087-AE88494CD31C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenThermalPrintAgent.Windows.Tests", "tests\OpenThermalPrintAgent.Windows.Tests\OpenThermalPrintAgent.Windows.Tests.csproj", "{A381C9BC-5A00-47B4-B3E8-B664048A2D1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{7698319B-CB81-4EB9-B087-AE88494CD31C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7698319B-CB81-4EB9-B087-AE88494CD31C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7698319B-CB81-4EB9-B087-AE88494CD31C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A381C9BC-5A00-47B4-B3E8-B664048A2D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A381C9BC-5A00-47B4-B3E8-B664048A2D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A381C9BC-5A00-47B4-B3E8-B664048A2D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A381C9BC-5A00-47B4-B3E8-B664048A2D1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5005D1F6-2A95-49DD-B543-1FCA74DAFEFA} = {A52196CF-0012-4543-BA1E-E9729286F316}
@@ -67,5 +73,6 @@ Global
 		{71BF0E1D-E289-46CB-8697-41E773D08F1D} = {CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}
 		{19D956CC-B771-49D9-B920-9BC1E7307538} = {CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}
 		{7698319B-CB81-4EB9-B087-AE88494CD31C} = {CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}
+		{A381C9BC-5A00-47B4-B3E8-B664048A2D1D} = {CD850C9A-88FB-4DC7-A7DC-0C37FFC8349D}
 	EndGlobalSection
 EndGlobal

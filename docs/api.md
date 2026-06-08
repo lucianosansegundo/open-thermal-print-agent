@@ -53,10 +53,17 @@ Response:
   {
     "name": "POS-80",
     "isDefault": true,
+    "driverName": "POS-80",
+    "portName": "USB002",
+    "status": "idle",
+    "isOnline": true,
+    "workOffline": false,
     "capabilities": ["raw", "escpos"]
   }
 ]
 ```
+
+Printer status fields are best-effort diagnostics from the operating system. `isOnline=true` means the Windows queue appears usable; it does not guarantee that the printer has paper, that ESC/POS bytes are accepted by the driver, or that the device physically printed.
 
 ## POST /api/v1/print/test
 
