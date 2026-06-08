@@ -35,6 +35,8 @@ Authorization: Bearer your-local-token
 
 `GET /api/v1/health` and `GET /api/v1/printers` remain available without a token in the MVP.
 
+WebSocket connections also require a token when token security is enabled. Browser clients may pass it as `?token=your-local-token`.
+
 ## Compatibility Contract
 
 The API version is part of the URL path. Version `v1` is the MVP compatibility contract.
@@ -228,3 +230,70 @@ Authentication-related responses:
 - Missing print token: `401`
 - Invalid print token: `403`
 - Token required but not configured: `403`
+
+## WebSocket /api/v1/ws
+
+HTTP remains the stable baseline. The WebSocket endpoint is available for clients that want realtime request/response messages over a single local connection.
+
+Health message:
+
+```json
+{ "type": "health" }
+```
+
+Health response:
+
+```json
+{
+  "type": "health",
+  "status": "ok",
+  "name": "open-thermal-print-agent",
+  "agentVersion": "0.1.0",
+  "apiVersion": "v1",
+  "platform": "Windows"
+}
+```
+
+Print message:
+
+```json
+{
+  "type": "print",
+  "payload": {
+    "jobId": "ws-demo-001",
+    "printerName": "POS-80",
+    "format": "escpos",
+    "paperWidth": "80mm",
+    "options": {
+      "cut": false,
+      "copies": 1
+    },
+    "content": [
+      { "type": "text", "value": "WebSocket receipt" }
+    ]
+  }
+}
+```
+
+Print response:
+
+```json
+{
+  "type": "printResult",
+  "jobId": "ws-demo-001",
+  "status": "printed",
+  "printerName": "POS-80",
+  "printedAt": "2026-06-08T00:00:00Z"
+}
+```
+
+Error response:
+
+```json
+{
+  "type": "error",
+  "code": "printer_not_found",
+  "message": "Printer was not found: POS-80.",
+  "details": []
+}
+```

@@ -30,6 +30,7 @@
 - Windows Service hosting support for persistent deployments.
 - Inno Setup installer configuration for Windows.
 - QR code, CODE128 barcode, and pre-rasterized image command support.
+- WebSocket API for health and print messages.
 
 ## Pending Manual Validation
 

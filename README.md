@@ -41,6 +41,7 @@ Canonical API v1 endpoints:
 - `GET /api/v1/printers`
 - `POST /api/v1/print/test`
 - `POST /api/v1/print`
+- `GET /api/v1/ws` with WebSocket upgrade
 
 Legacy MVP aliases without `/api/v1` are still available for compatibility.
 
