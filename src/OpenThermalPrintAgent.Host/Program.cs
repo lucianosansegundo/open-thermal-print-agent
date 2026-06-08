@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using OpenThermalPrintAgent.Core.Errors;
 using OpenThermalPrintAgent.Core.Models;
 using OpenThermalPrintAgent.Core.Printing;
@@ -13,6 +14,11 @@ using OpenThermalPrintAgent.Host.Configuration;
 using OpenThermalPrintAgent.Host.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseWindowsService(options =>
+{
+    options.ServiceName = "Open Thermal Print Agent";
+});
+
 builder.Services.Configure<AgentOptions>(builder.Configuration.GetSection("Agent"));
 var agentOptions = builder.Configuration.GetSection("Agent").Get<AgentOptions>() ?? new AgentOptions();
 
