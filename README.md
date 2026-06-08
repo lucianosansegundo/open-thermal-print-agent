@@ -126,6 +126,7 @@ No physical printer is required to run unit tests. Hardware tests must be perfor
 - [API](docs/api.md)
 - [ESC/POS](docs/escpos.md)
 - [Windows setup](docs/windows-setup.md)
+- [Windows service mode](docs/windows-service.md)
 - [Security](docs/security.md)
 - [Compatibility](docs/compatibility.md)
 - [Roadmap](docs/roadmap.md)
