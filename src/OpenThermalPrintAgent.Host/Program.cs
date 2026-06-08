@@ -46,15 +46,27 @@ var app = builder.Build();
 
 app.UseCors("ConfiguredOrigins");
 
-app.MapGet("/health", () => Results.Ok(new
+const string ApiVersion = "v1";
+const string ApiPrefix = "/api/v1";
+
+MapEndpoints(app);
+MapEndpoints(app.MapGroup(ApiPrefix));
+
+app.Run();
+
+static void MapEndpoints(IEndpointRouteBuilder endpoints)
+{
+    endpoints.MapGet("/health", () => Results.Ok(new
 {
     status = "ok",
     name = "open-thermal-print-agent",
-    version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.1.0",
+    version = GetAgentVersion(),
+    agentVersion = GetAgentVersion(),
+    apiVersion = ApiVersion,
     platform = RuntimeInformation.OSDescription
 }));
 
-app.MapGet("/printers", (IServiceProvider services) =>
+    endpoints.MapGet("/printers", (IServiceProvider services) =>
 {
     if (!TryGetService<IPrinterProvider>(services, out var printerProvider, out var unsupported))
     {
@@ -71,7 +83,7 @@ app.MapGet("/printers", (IServiceProvider services) =>
     }
 });
 
-app.MapPost("/print/test", (
+    endpoints.MapPost("/print/test", (
     TestPrintRequest request,
     EscPosRenderer renderer,
     IServiceProvider services) =>
@@ -121,7 +133,7 @@ app.MapPost("/print/test", (
     }
 });
 
-app.MapPost("/print", (
+    endpoints.MapPost("/print", (
     PrintJobRequest request,
     EscPosRenderer renderer,
     IServiceProvider services) =>
@@ -170,8 +182,12 @@ app.MapPost("/print", (
         return ErrorResult(AgentError.PrintFailed(exception.Message));
     }
 });
+}
 
-app.Run();
+static string GetAgentVersion()
+{
+    return Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.1.0";
+}
 
 static bool TryGetService<T>(IServiceProvider services, out T service, out AgentError unsupported)
     where T : class
@@ -195,3 +211,5 @@ static IResult ErrorResult(AgentError error)
 
     return Results.Json(error, statusCode: statusCode);
 }
+
+public partial class Program;
