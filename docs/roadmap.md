@@ -11,6 +11,24 @@
 - Support text, alignment, bold, feed, paper cut, and cash drawer kick.
 - Unit tests for ESC/POS byte generation and validation.
 
+## Implemented in Initial MVP
+
+- .NET 8 solution with Core, ESC/POS, Windows, Host, and test projects.
+- MIT license and English technical documentation.
+- Local Minimal API on `127.0.0.1:17890`.
+- Configured CORS with explicit local origins.
+- ESC/POS renderer for text, alignment, bold, feed, cut, and drawer kick.
+- Windows raw printer adapter using installed printer queues.
+- Unit tests for renderer output and payload validation.
+
+## Pending Manual Validation
+
+- Physical printer tests for text output.
+- Physical printer tests for accented characters.
+- Physical printer tests for paper cut.
+- Physical printer tests for cash drawer kick.
+- Driver-specific raw printing compatibility checks.
+
 ## Production Backlog
 
 - Windows installer.
