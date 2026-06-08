@@ -15,6 +15,11 @@ public sealed class EscPosRenderer
     private static readonly byte[] FeedAndPartialCut = [0x1D, 0x56, 0x42, 0x03];
     private static readonly byte[] DrawerKick = [0x1B, 0x70, 0x00, 0x32, 0xFA];
 
+    static EscPosRenderer()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
+
     public byte[] Render(PrintJobRequest request)
     {
         var error = PrintJobValidator.Validate(request);
@@ -25,6 +30,7 @@ public sealed class EscPosRenderer
 
         using var output = new MemoryStream();
         Write(output, Initialize);
+        var textEncoding = ResolveEncoding(request.Options.EncodingProfile);
 
         var copies = Math.Max(1, request.Options.Copies);
         for (var copy = 0; copy < copies; copy++)
@@ -36,7 +42,7 @@ public sealed class EscPosRenderer
 
             foreach (var command in request.Content)
             {
-                WriteCommand(output, command);
+                WriteCommand(output, command, textEncoding);
             }
 
             WriteCut(output, ResolveOptionsCutMode(request.Options));
@@ -61,6 +67,7 @@ public sealed class EscPosRenderer
             {
                 Cut = request.Cut,
                 CutMode = request.CutMode,
+                EncodingProfile = request.EncodingProfile,
                 OpenDrawer = request.OpenDrawer,
                 Copies = 1
             },
@@ -81,7 +88,7 @@ public sealed class EscPosRenderer
         return Render(job);
     }
 
-    private static void WriteCommand(Stream output, PrintContentCommand command)
+    private static void WriteCommand(Stream output, PrintContentCommand command, Encoding textEncoding)
     {
         switch (command.Type)
         {
@@ -93,7 +100,7 @@ public sealed class EscPosRenderer
                     Write(output, command.Bold.Value ? BoldOn : BoldOff);
                 }
 
-                WriteText(output, command.Value ?? string.Empty);
+                WriteText(output, command.Value ?? string.Empty, textEncoding);
                 output.WriteByte(0x0A);
                 break;
 
@@ -160,9 +167,20 @@ public sealed class EscPosRenderer
         Write(output, [0x1B, 0x64, (byte)lines]);
     }
 
-    private static void WriteText(Stream output, string text)
+    private static Encoding ResolveEncoding(EncodingProfile? profile)
     {
-        var bytes = Encoding.Latin1.GetBytes(text);
+        return (profile ?? EncodingProfile.Latin1) switch
+        {
+            EncodingProfile.Latin1 => Encoding.Latin1,
+            EncodingProfile.Cp850 => Encoding.GetEncoding(850),
+            EncodingProfile.Cp858 => Encoding.GetEncoding(858),
+            _ => Encoding.Latin1
+        };
+    }
+
+    private static void WriteText(Stream output, string text, Encoding encoding)
+    {
+        var bytes = encoding.GetBytes(text);
         output.Write(bytes);
     }
 

@@ -113,6 +113,21 @@ public sealed class PrintJobValidatorTests
         Assert.Contains(error.Details, detail => detail.Contains("cutMode", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ValidateRejectsInvalidEncodingProfile()
+    {
+        var request = ValidRequest() with
+        {
+            Options = new PrintJobOptions { EncodingProfile = (EncodingProfile)(-1) }
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("options.encodingProfile", StringComparison.Ordinal));
+    }
+
     private static PrintJobRequest ValidRequest() => new()
     {
         PrinterName = "POS-80",

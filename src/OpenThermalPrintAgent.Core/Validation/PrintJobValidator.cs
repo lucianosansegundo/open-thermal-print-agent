@@ -25,6 +25,7 @@ public static class PrintJobValidator
 
         ValidatePaperWidth(request.PaperWidth, errors);
         ValidateCutMode(request.Options.CutMode, "options.cutMode", errors);
+        ValidateEncodingProfile(request.Options.EncodingProfile, "options.encodingProfile", errors);
 
         if (request.Options.Copies is < 1 or > MaxCopies)
         {
@@ -60,6 +61,7 @@ public static class PrintJobValidator
 
         ValidatePaperWidth(request.PaperWidth, errors);
         ValidateCutMode(request.CutMode, "cutMode", errors);
+        ValidateEncodingProfile(request.EncodingProfile, "encodingProfile", errors);
 
         return errors.Count == 0 ? null : AgentError.InvalidPayload(errors.ToArray());
     }
@@ -69,6 +71,14 @@ public static class PrintJobValidator
         if (cutMode is not null && !Enum.IsDefined(cutMode.Value))
         {
             errors.Add($"{fieldName} must be none, full, partial, feedAndFull, or feedAndPartial.");
+        }
+    }
+
+    private static void ValidateEncodingProfile(EncodingProfile? encodingProfile, string fieldName, List<string> errors)
+    {
+        if (encodingProfile is not null && !Enum.IsDefined(encodingProfile.Value))
+        {
+            errors.Add($"{fieldName} must be latin1, cp850, or cp858.");
         }
     }
 
