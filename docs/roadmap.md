@@ -23,6 +23,7 @@
 - Versioned local API under `/api/v1` with legacy MVP aliases.
 - Windows raw printer adapter using installed printer queues.
 - Unit tests for renderer output and payload validation.
+- Hardware compatibility matrix and printer report template.
 
 ## Pending Manual Validation
 
@@ -31,6 +32,7 @@
 - Physical printer tests for paper cut across all supported cut modes.
 - Physical printer tests for cash drawer kick.
 - Driver-specific raw printing compatibility checks.
+- Additional hardware compatibility reports.
 
 ## Production Backlog
 
@@ -47,4 +49,4 @@
 - Better code pages and internationalization.
 - Printer status, offline detection, and paper-out detection.
 - Exportable logs.
-- Hardware compatibility matrix.
+- Expanded hardware compatibility matrix.
