@@ -39,11 +39,14 @@ Canonical API v1 endpoints:
 
 - `GET /api/v1/health`
 - `GET /api/v1/printers`
+- `GET /api/v1/jobs/recent`
 - `POST /api/v1/print/test`
 - `POST /api/v1/print`
 - `GET /api/v1/ws` with WebSocket upgrade
 
 Legacy MVP aliases without `/api/v1` are still available for compatibility.
+
+`POST /api/v1/print` can optionally use an in-memory local queue when `Agent:Queue:Enabled` is set to `true`.
 
 See [docs/api.md](docs/api.md) for request and response details.
 

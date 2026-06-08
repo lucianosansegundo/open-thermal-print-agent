@@ -204,6 +204,38 @@ Response:
 }
 ```
 
+When `Agent:Queue:Enabled` is `true`, this endpoint validates and enqueues the job instead of printing synchronously. The response status is `queued`; processing continues in the background with the configured retry policy.
+
+## GET /api/v1/jobs/recent
+
+Returns recent in-memory queued job status records.
+
+Response:
+
+```json
+[
+  {
+    "jobId": "optional-client-job-id",
+    "printerName": "POS-80",
+    "status": "printed",
+    "attempts": 1,
+    "errorCode": null,
+    "errorMessage": null,
+    "createdAt": "2026-06-08T00:00:00Z",
+    "updatedAt": "2026-06-08T00:00:01Z"
+  }
+]
+```
+
+Queue statuses:
+
+- `queued`
+- `printing`
+- `printed`
+- `failed`
+
+The MVP queue is in-memory. Jobs are not persisted across agent restarts.
+
 ## Errors
 
 Errors use a consistent shape:
