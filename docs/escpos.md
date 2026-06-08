@@ -42,9 +42,17 @@ Compatibility rules:
 
 ## Encoding
 
-Input strings are .NET Unicode strings. The MVP encodes text to Latin-1 compatible bytes to support common Latin characters such as accented vowels and `ñ` on many printers.
+Input strings are .NET Unicode strings. The renderer encodes text according to the job encoding profile.
 
-Printer firmware and configured code pages may differ. Future versions should support explicit ESC/POS code page selection and better internationalization.
+Supported profiles:
+
+| Profile | .NET encoding | Notes |
+| --- | --- | --- |
+| `latin1` | Latin-1 | Default. Direct byte mapping for common Western European characters. |
+| `cp850` | IBM code page 850 | Common ESC/POS Western European code page. |
+| `cp858` | IBM code page 858 | Similar to CP850 and includes the euro symbol. |
+
+Printer firmware and configured code pages may differ. The MVP encodes bytes for the selected profile but does not yet emit ESC/POS code page selection commands. If a printer is configured to a different firmware code page, characters may still render incorrectly.
 
 ## Limitations
 
@@ -55,3 +63,4 @@ Printer firmware and configured code pages may differ. Future versions should su
 - No paper out/offline detection.
 - No full-width layout engine.
 - No automatic code page negotiation.
+- No ESC/POS code page selection command emission yet.

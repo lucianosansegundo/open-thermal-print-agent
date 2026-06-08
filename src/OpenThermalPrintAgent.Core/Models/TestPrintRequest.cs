@@ -10,5 +10,7 @@ public sealed record TestPrintRequest
 
     public CutMode? CutMode { get; init; }
 
+    public EncodingProfile? EncodingProfile { get; init; }
+
     public bool OpenDrawer { get; init; }
 }

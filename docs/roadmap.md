@@ -25,6 +25,7 @@
 - Unit tests for renderer output and payload validation.
 - Hardware compatibility matrix and printer report template.
 - Windows printer discovery with driver, port, default, queue status, and offline diagnostics.
+- Configurable text encoding profiles: `latin1`, `cp850`, and `cp858`.
 
 ## Pending Manual Validation
 
@@ -34,6 +35,7 @@
 - Physical printer tests for cash drawer kick.
 - Driver-specific raw printing compatibility checks.
 - Additional hardware compatibility reports.
+- Physical validation of encoding profiles per printer model.
 
 ## Production Backlog
 
@@ -47,7 +49,7 @@
 - Backend polling connector.
 - Linux and macOS adapters.
 - QR codes, barcodes, and logos.
-- Better code pages and internationalization.
+- ESC/POS code page selection commands and broader internationalization.
 - Better physical printer status, offline detection, and paper-out detection.
 - Exportable logs.
 - Expanded hardware compatibility matrix.

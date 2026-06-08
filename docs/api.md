@@ -77,6 +77,7 @@ Request:
   "paperWidth": "80mm",
   "cut": true,
   "cutMode": "full",
+  "encodingProfile": "latin1",
   "openDrawer": false
 }
 ```
@@ -109,6 +110,7 @@ Request:
   "options": {
     "cut": true,
     "cutMode": "full",
+    "encodingProfile": "latin1",
     "openDrawer": false,
     "copies": 1
   },
@@ -139,6 +141,14 @@ Compatibility rules:
 - If `cutMode` is omitted and `cut` is `false`, the agent uses `none`.
 - A content command `{ "type": "cut" }` keeps the previous behavior and emits `partial`.
 - A content command can specify a mode: `{ "type": "cut", "mode": "feedAndPartial" }`.
+
+Supported encoding profiles:
+
+- `latin1`: default profile, Latin-1 byte mapping.
+- `cp850`: IBM code page 850, common on ESC/POS printers for Western European text.
+- `cp858`: IBM code page 858, similar to CP850 with euro symbol support.
+
+`encodingProfile` is optional. If omitted, the agent uses `latin1`.
 
 Response:
 

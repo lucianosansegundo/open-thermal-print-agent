@@ -6,6 +6,8 @@ public sealed record PrintJobOptions
 
     public CutMode? CutMode { get; init; }
 
+    public EncodingProfile? EncodingProfile { get; init; }
+
     public bool OpenDrawer { get; init; }
 
     public int Copies { get; init; } = 1;

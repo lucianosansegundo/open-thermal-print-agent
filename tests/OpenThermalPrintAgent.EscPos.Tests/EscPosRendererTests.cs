@@ -1,5 +1,6 @@
 using OpenThermalPrintAgent.Core.Models;
 using OpenThermalPrintAgent.EscPos;
+using System.Text;
 
 namespace OpenThermalPrintAgent.EscPos.Tests;
 
@@ -164,6 +165,37 @@ public sealed class EscPosRendererTests
 
         Assert.Contains((byte)0xE1, bytes);
         Assert.Contains((byte)0xF1, bytes);
+    }
+
+    [Fact]
+    public void RenderUsesLatin1EncodingByDefault()
+    {
+        var bytes = _renderer.Render(JobWith(
+            new PrintContentCommand { Type = PrintCommandType.Text, Value = "á é í ó ú ñ" }));
+
+        AssertContainsSequence(bytes, Encoding.Latin1.GetBytes("á é í ó ú ñ"));
+    }
+
+    [Fact]
+    public void RenderUsesCp850EncodingWhenConfigured()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        var bytes = _renderer.Render(JobWithOptions(
+            new PrintJobOptions { EncodingProfile = EncodingProfile.Cp850 },
+            new PrintContentCommand { Type = PrintCommandType.Text, Value = "á é í ó ú ñ" }));
+
+        AssertContainsSequence(bytes, Encoding.GetEncoding(850).GetBytes("á é í ó ú ñ"));
+    }
+
+    [Fact]
+    public void RenderUsesCp858EncodingWhenConfigured()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        var bytes = _renderer.Render(JobWithOptions(
+            new PrintJobOptions { EncodingProfile = EncodingProfile.Cp858 },
+            new PrintContentCommand { Type = PrintCommandType.Text, Value = "Total 10€" }));
+
+        AssertContainsSequence(bytes, Encoding.GetEncoding(858).GetBytes("Total 10€"));
     }
 
     private static PrintJobRequest JobWith(params PrintContentCommand[] commands) => new()

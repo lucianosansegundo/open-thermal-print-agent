@@ -66,6 +66,7 @@ $body = @{
   paperWidth = "80mm"
   cut = $true
   cutMode = "full"
+  encodingProfile = "latin1"
   openDrawer = $false
 } | ConvertTo-Json
 
@@ -83,6 +84,7 @@ $body = @{
   options = @{
     cut = $true
     cutMode = "full"
+    encodingProfile = "latin1"
     openDrawer = $false
     copies = 1
   }
@@ -102,7 +104,7 @@ Invoke-RestMethod http://127.0.0.1:17890/api/v1/print -Method Post -ContentType 
 
 ## Compatibility Warnings
 
-ESC/POS is a de facto standard, not a single fully consistent implementation. Paper cut, drawer kick, code pages, and accented characters may vary by printer model, driver, and Windows queue configuration. Use `cutMode` when a printer needs a specific cut command.
+ESC/POS is a de facto standard, not a single fully consistent implementation. Paper cut, drawer kick, code pages, and accented characters may vary by printer model, driver, and Windows queue configuration. Use `cutMode` when a printer needs a specific cut command, and `encodingProfile` when accented characters or currency symbols need a different code page.
 
 No physical printer is required to run unit tests. Hardware tests must be performed manually.
 

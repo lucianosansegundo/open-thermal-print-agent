@@ -26,6 +26,9 @@ Use this checklist when validating a printer:
 - Plain text prints.
 - Accented characters print correctly: `á é í ó ú ñ`.
 - Currency symbols print correctly for the target locale.
+- `encodingProfile=latin1` renders expected characters.
+- `encodingProfile=cp850` renders expected characters.
+- `encodingProfile=cp858` renders expected characters, including `€` where supported.
 - `cutMode=full` cuts correctly.
 - `cutMode=partial` cuts correctly.
 - `cutMode=feedAndFull` cuts correctly.
@@ -46,6 +49,7 @@ Paper width: 58mm / 80mm / other
 
 Agent version:
 API version:
+Encoding profile tested: latin1 / cp850 / cp858
 
 Plain text: Passed / Failed / Pending
 Accented characters: Passed / Failed / Pending
@@ -74,6 +78,7 @@ Validation so far:
 - `/print/test` with `cutMode=full`: queue passed.
 - Physical cut confirmation: pending.
 - Accented characters: pending.
+- Encoding profiles: pending physical validation.
 - Drawer kick: pending.
 
 If `full` does not cut physically, test `partial`, then `feedAndFull`, then `feedAndPartial`, and document the first working mode.
