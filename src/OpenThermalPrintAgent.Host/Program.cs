@@ -26,6 +26,7 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new PaperWidthJsonConverter());
     options.SerializerOptions.Converters.Add(new TextAlignmentJsonConverter());
     options.SerializerOptions.Converters.Add(new PrintCommandTypeJsonConverter());
+    options.SerializerOptions.Converters.Add(new CutModeJsonConverter());
 });
 
 builder.Services.AddCors(options =>

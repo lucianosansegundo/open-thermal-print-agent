@@ -9,6 +9,7 @@
 - Print simple generic ESC/POS jobs.
 - Support 58mm and 80mm paper width values.
 - Support text, alignment, bold, feed, paper cut, and cash drawer kick.
+- Support configurable ESC/POS cut modes.
 - Unit tests for ESC/POS byte generation and validation.
 
 ## Implemented in Initial MVP
@@ -18,6 +19,7 @@
 - Local Minimal API on `127.0.0.1:17890`.
 - Configured CORS with explicit local origins.
 - ESC/POS renderer for text, alignment, bold, feed, cut, and drawer kick.
+- ESC/POS cut modes: `none`, `full`, `partial`, `feedAndFull`, and `feedAndPartial`.
 - Windows raw printer adapter using installed printer queues.
 - Unit tests for renderer output and payload validation.
 
@@ -25,7 +27,7 @@
 
 - Physical printer tests for text output.
 - Physical printer tests for accented characters.
-- Physical printer tests for paper cut.
+- Physical printer tests for paper cut across all supported cut modes.
 - Physical printer tests for cash drawer kick.
 - Driver-specific raw printing compatibility checks.
 

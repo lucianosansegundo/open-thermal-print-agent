@@ -4,6 +4,8 @@ public sealed record PrintJobOptions
 {
     public bool Cut { get; init; }
 
+    public CutMode? CutMode { get; init; }
+
     public bool OpenDrawer { get; init; }
 
     public int Copies { get; init; } = 1;

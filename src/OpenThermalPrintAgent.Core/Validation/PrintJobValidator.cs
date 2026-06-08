@@ -24,6 +24,7 @@ public static class PrintJobValidator
         }
 
         ValidatePaperWidth(request.PaperWidth, errors);
+        ValidateCutMode(request.Options.CutMode, "options.cutMode", errors);
 
         if (request.Options.Copies is < 1 or > MaxCopies)
         {
@@ -58,8 +59,17 @@ public static class PrintJobValidator
         }
 
         ValidatePaperWidth(request.PaperWidth, errors);
+        ValidateCutMode(request.CutMode, "cutMode", errors);
 
         return errors.Count == 0 ? null : AgentError.InvalidPayload(errors.ToArray());
+    }
+
+    private static void ValidateCutMode(CutMode? cutMode, string fieldName, List<string> errors)
+    {
+        if (cutMode is not null && !Enum.IsDefined(cutMode.Value))
+        {
+            errors.Add($"{fieldName} must be none, full, partial, feedAndFull, or feedAndPartial.");
+        }
     }
 
     private static void ValidatePaperWidth(PaperWidth paperWidth, List<string> errors)
@@ -82,6 +92,8 @@ public static class PrintJobValidator
         {
             errors.Add($"content[{index}].align is invalid.");
         }
+
+        ValidateCutMode(command.Mode, $"content[{index}].mode", errors);
 
         switch (command.Type)
         {

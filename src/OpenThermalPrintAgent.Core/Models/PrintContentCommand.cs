@@ -11,4 +11,6 @@ public sealed record PrintContentCommand
     public bool? Bold { get; init; }
 
     public int? Lines { get; init; }
+
+    public CutMode? Mode { get; init; }
 }

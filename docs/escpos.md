@@ -9,7 +9,7 @@ The MVP renderer supports a small, predictable ESC/POS subset.
 - Alignment: left, center, right.
 - Bold on/off.
 - Feed N lines.
-- Partial paper cut.
+- Configurable paper cut modes.
 - Cash drawer kick using the common `ESC p` command.
 
 ## Paper Width
@@ -20,6 +20,25 @@ Supported paper widths:
 - `80mm`
 
 The renderer validates this value. The MVP does not perform full layout or automatic wrapping based on width.
+
+## Cut Modes
+
+The renderer supports these cut modes:
+
+| Mode | ESC/POS bytes | Notes |
+| --- | --- | --- |
+| `none` | none | Does not emit a cut command. |
+| `full` | `1D 56 00` | Full cut using `GS V 0`. |
+| `partial` | `1D 56 01` | Partial cut using `GS V 1`. This is the legacy command used by `{ "type": "cut" }`. |
+| `feedAndFull` | `1D 56 41 03` | Feed 3 lines and full cut using `GS V A n`. |
+| `feedAndPartial` | `1D 56 42 03` | Feed 3 lines and partial cut using `GS V B n`. |
+
+Compatibility rules:
+
+- `cutMode` overrides the legacy `cut` boolean.
+- `cut=true` without `cutMode` maps to `full`.
+- `cut=false` without `cutMode` maps to `none`.
+- `{ "type": "cut" }` remains backward compatible and maps to `partial`.
 
 ## Encoding
 

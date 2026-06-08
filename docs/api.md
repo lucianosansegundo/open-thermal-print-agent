@@ -50,9 +50,12 @@ Request:
   "printerName": "POS-80",
   "paperWidth": "80mm",
   "cut": true,
+  "cutMode": "full",
   "openDrawer": false
 }
 ```
+
+`cutMode` is optional. When present, it overrides `cut`.
 
 Response:
 
@@ -79,6 +82,7 @@ Request:
   "paperWidth": "80mm",
   "options": {
     "cut": true,
+    "cutMode": "full",
     "openDrawer": false,
     "copies": 1
   },
@@ -89,10 +93,26 @@ Request:
     { "type": "text", "value": "Product         $ 1.000", "align": "left" },
     { "type": "text", "value": "TOTAL           $ 1.000", "align": "left", "bold": true },
     { "type": "feed", "lines": 3 },
-    { "type": "cut" }
+    { "type": "cut", "mode": "full" }
   ]
 }
 ```
+
+Supported cut modes:
+
+- `none`
+- `full`
+- `partial`
+- `feedAndFull`
+- `feedAndPartial`
+
+Compatibility rules:
+
+- If `cutMode` is provided, it overrides the legacy `cut` boolean.
+- If `cutMode` is omitted and `cut` is `true`, the agent uses `full`.
+- If `cutMode` is omitted and `cut` is `false`, the agent uses `none`.
+- A content command `{ "type": "cut" }` keeps the previous behavior and emits `partial`.
+- A content command can specify a mode: `{ "type": "cut", "mode": "feedAndPartial" }`.
 
 Response:
 

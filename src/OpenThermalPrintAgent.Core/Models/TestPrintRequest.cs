@@ -8,5 +8,7 @@ public sealed record TestPrintRequest
 
     public bool Cut { get; init; } = true;
 
+    public CutMode? CutMode { get; init; }
+
     public bool OpenDrawer { get; init; }
 }

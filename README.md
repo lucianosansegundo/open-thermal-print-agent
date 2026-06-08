@@ -61,6 +61,7 @@ $body = @{
   printerName = "POS-80"
   paperWidth = "80mm"
   cut = $true
+  cutMode = "full"
   openDrawer = $false
 } | ConvertTo-Json
 
@@ -77,6 +78,7 @@ $body = @{
   paperWidth = "80mm"
   options = @{
     cut = $true
+    cutMode = "full"
     openDrawer = $false
     copies = 1
   }
@@ -87,7 +89,7 @@ $body = @{
     @{ type = "text"; value = "Product         $ 1.000"; align = "left" },
     @{ type = "text"; value = "TOTAL           $ 1.000"; align = "left"; bold = $true },
     @{ type = "feed"; lines = 3 },
-    @{ type = "cut" }
+    @{ type = "cut"; mode = "full" }
   )
 } | ConvertTo-Json -Depth 5
 
@@ -96,7 +98,7 @@ Invoke-RestMethod http://127.0.0.1:17890/print -Method Post -ContentType "applic
 
 ## Compatibility Warnings
 
-ESC/POS is a de facto standard, not a single fully consistent implementation. Paper cut, drawer kick, code pages, and accented characters may vary by printer model, driver, and Windows queue configuration.
+ESC/POS is a de facto standard, not a single fully consistent implementation. Paper cut, drawer kick, code pages, and accented characters may vary by printer model, driver, and Windows queue configuration. Use `cutMode` when a printer needs a specific cut command.
 
 No physical printer is required to run unit tests. Hardware tests must be performed manually.
 
