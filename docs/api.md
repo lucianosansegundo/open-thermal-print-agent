@@ -180,6 +180,12 @@ Request:
         "lines": ["Thank you!"],
         "align": "center"
       },
+      {
+        "type": "qr",
+        "value": "https://example.test/receipt/demo-001",
+        "align": "center",
+        "size": 4
+      },
       { "type": "blank", "lines": 3 }
     ]
   }
@@ -199,6 +205,7 @@ Supported receipt blocks:
 - `separator`: `char` optional single character, default `-`; rendered as a full-width line.
 - `items`: `items` required array of `{ "name": "...", "quantity": "...", "unitPrice": "...", "total": "...", "comment": "..." }`; long names wrap deterministically.
 - `totals`: `rows` required array of `{ "label": "...", "value": "...", "bold": false }`.
+- `qr`: `value` required, `align` optional (`left`, `center`, `right`, default `center`), `size` optional integer from 1 to 16, default 4.
 - `blank`: `lines` optional integer from 1 to 20, default 1.
 
 Receipt layout uses deterministic character widths: 32 characters for `58mm` and 42 characters for `80mm`. These are conservative defaults for common thermal printers; exact physical output still depends on printer font settings.

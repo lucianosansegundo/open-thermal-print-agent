@@ -20,7 +20,7 @@
 - Local Minimal API on `127.0.0.1:17890`.
 - Configured CORS with explicit local origins.
 - ESC/POS renderer for text, alignment, bold, feed, cut, and drawer kick.
-- Semantic receipt format with text, key/value, separator, items, totals, and blank blocks.
+- Semantic receipt format with text, key/value, separator, items, totals, QR, and blank blocks.
 - ESC/POS cut modes: `none`, `full`, `partial`, `feedAndFull`, and `feedAndPartial`.
 - Versioned local API under `/api/v1` with legacy MVP aliases.
 - Windows raw printer adapter using installed printer queues.
@@ -60,7 +60,7 @@
 - Backend polling connector.
 - Linux and macOS adapters.
 - Broader barcode formats and PNG/JPEG logo preprocessing.
-- Additional semantic receipt blocks for QR codes, barcodes, images, and optional HTML-to-raster rendering.
+- Additional semantic receipt blocks for barcodes, images, and optional HTML-to-raster rendering.
 - ESC/POS code page selection commands and broader internationalization.
 - Better physical printer status, offline detection, and paper-out detection.
 - Exportable logs.

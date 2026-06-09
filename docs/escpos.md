@@ -79,10 +79,12 @@ Printer firmware and configured code pages may differ. The MVP encodes bytes for
 QR codes use the common ESC/POS `GS ( k` command sequence:
 
 - Select model 2.
-- Set module size 4.
+- Set module size. The default is 4; QR commands may override it with `size`.
 - Set error correction level L.
 - Store data.
 - Print symbol.
+
+Semantic receipt jobs can use a `qr` block. Low-level ESC/POS jobs can use a `qrCode` command. Both paths reuse the same QR command generation.
 
 Barcodes currently support CODE128 using `GS k 73 n data`. If the value does not start with a CODE128 subset marker, the renderer prefixes `{B`.
 

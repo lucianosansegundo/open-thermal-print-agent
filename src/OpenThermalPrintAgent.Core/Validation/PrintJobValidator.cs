@@ -10,6 +10,8 @@ public static class PrintJobValidator
     public const int MaxTextLength = 2048;
     public const int MaxCopies = 10;
     public const int MaxQrCodeLength = 1024;
+    public const int MinQrCodeSize = 1;
+    public const int MaxQrCodeSize = 16;
     public const int MaxBarcodeLength = 128;
     public const int MaxRasterBytes = 64 * 1024;
     public const int MaxReceiptBlocks = 200;
@@ -154,6 +156,7 @@ public static class PrintJobValidator
 
             case PrintCommandType.QrCode:
                 ValidateRequiredValue(command, index, "QR code", MaxQrCodeLength, errors);
+                ValidateQrSize(command.Size, $"content[{index}].size", errors);
                 break;
 
             case PrintCommandType.Barcode:
@@ -233,6 +236,11 @@ public static class PrintJobValidator
 
             case "blank":
                 ValidateBlankLines(block.Lines, $"receipt.blocks[{index}].lines", errors);
+                break;
+
+            case "qr":
+                ValidateRequiredText(block.Value, $"receipt.blocks[{index}].value", MaxQrCodeLength, errors);
+                ValidateQrSize(block.Size, $"receipt.blocks[{index}].size", errors);
                 break;
 
             default:
@@ -323,6 +331,14 @@ public static class PrintJobValidator
         if (lines.Value.ValueKind != JsonValueKind.Number || !lines.Value.TryGetInt32(out var value) || value is < 1 or > 20)
         {
             errors.Add($"{fieldName} must be between 1 and 20.");
+        }
+    }
+
+    private static void ValidateQrSize(int? size, string fieldName, List<string> errors)
+    {
+        if (size is not null and (< MinQrCodeSize or > MaxQrCodeSize))
+        {
+            errors.Add($"{fieldName} must be between {MinQrCodeSize} and {MaxQrCodeSize}.");
         }
     }
 

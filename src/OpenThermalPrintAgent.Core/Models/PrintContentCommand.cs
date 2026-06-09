@@ -14,6 +14,8 @@ public sealed record PrintContentCommand
 
     public int? Lines { get; init; }
 
+    public int? Size { get; init; }
+
     public CutMode? Mode { get; init; }
 
     public BarcodeType? BarcodeType { get; init; }

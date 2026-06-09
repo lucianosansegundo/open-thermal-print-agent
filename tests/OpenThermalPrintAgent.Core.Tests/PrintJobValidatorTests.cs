@@ -271,6 +271,67 @@ public sealed class PrintJobValidatorTests
         Assert.Contains(error.Details, detail => detail.Contains("receipt.blocks[0].lines", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ValidateReturnsNullForValidReceiptQrBlock()
+    {
+        var request = ValidReceiptRequest() with
+        {
+            Receipt = new ReceiptDocument
+            {
+                Blocks =
+                [
+                    new ReceiptBlock { Type = "qr", Value = "https://example.test/receipt/123", Size = 4 }
+                ]
+            }
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void ValidateRejectsReceiptQrBlockWithoutValue()
+    {
+        var request = ValidReceiptRequest() with
+        {
+            Receipt = new ReceiptDocument
+            {
+                Blocks =
+                [
+                    new ReceiptBlock { Type = "qr" }
+                ]
+            }
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("receipt.blocks[0].value", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateRejectsReceiptQrBlockWithInvalidSize()
+    {
+        var request = ValidReceiptRequest() with
+        {
+            Receipt = new ReceiptDocument
+            {
+                Blocks =
+                [
+                    new ReceiptBlock { Type = "qr", Value = "https://example.test", Size = 99 }
+                ]
+            }
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("receipt.blocks[0].size", StringComparison.Ordinal));
+    }
+
     private static PrintJobRequest ValidRequest() => new()
     {
         PrinterName = "POS-80",

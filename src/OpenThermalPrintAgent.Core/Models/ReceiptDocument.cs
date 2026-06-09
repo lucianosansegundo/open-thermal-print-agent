@@ -24,6 +24,10 @@ public sealed record ReceiptBlock
 
     public bool? Bold { get; init; }
 
+    public string? Value { get; init; }
+
+    public int? Size { get; init; }
+
     public IReadOnlyList<ReceiptKeyValueRow> Rows { get; init; } = [];
 
     public IReadOnlyList<ReceiptItem> Items { get; init; } = [];
