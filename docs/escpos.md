@@ -1,6 +1,6 @@
 # ESC/POS
 
-The MVP renderer supports a small, predictable ESC/POS subset.
+The renderer supports a predictable ESC/POS subset. The public API can receive semantic `receipt` jobs or low-level `escpos` jobs; both are rendered to ESC/POS bytes internally.
 
 ## Supported Commands
 
@@ -22,7 +22,14 @@ Supported paper widths:
 - `58mm`
 - `80mm`
 
-The renderer validates this value. The MVP does not perform full layout or automatic wrapping based on width.
+The renderer validates this value.
+
+For `format: "receipt"`, semantic layout uses conservative fixed-width defaults:
+
+- `58mm`: 32 characters per line.
+- `80mm`: 42 characters per line.
+
+For `format: "escpos"`, clients control layout directly through text and ESC/POS commands.
 
 ## Cut Modes
 
@@ -59,6 +66,7 @@ Printer firmware and configured code pages may differ. The MVP encodes bytes for
 
 ## Limitations
 
+- Semantic receipt layout is deterministic but intentionally simple.
 - No PNG/JPEG decoding. Image/logo input must be pre-rasterized bytes.
 - No printer status reads.
 - No paper out/offline detection.

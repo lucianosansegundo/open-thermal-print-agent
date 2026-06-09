@@ -13,4 +13,6 @@ public sealed record PrintJobRequest
     public PrintJobOptions Options { get; init; } = new();
 
     public IReadOnlyList<PrintContentCommand> Content { get; init; } = [];
+
+    public ReceiptDocument? Receipt { get; init; }
 }

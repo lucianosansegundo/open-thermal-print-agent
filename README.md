@@ -89,13 +89,13 @@ Invoke-RestMethod http://127.0.0.1:17890/api/v1/print/test `
   -Body $body
 ```
 
-Print a generic ESC/POS job:
+Print a semantic receipt job:
 
 ```powershell
 $body = @{
   jobId = "demo-001"
   printerName = "POS-80"
-  format = "escpos"
+  format = "receipt"
   paperWidth = "80mm"
   options = @{
     cut = $true
@@ -104,19 +104,35 @@ $body = @{
     openDrawer = $false
     copies = 1
   }
-  content = @(
-    @{ type = "text"; value = "Open Thermal Print Agent"; align = "center"; bold = $true },
-    @{ type = "text"; value = "Test receipt"; align = "center" },
-    @{ type = "feed"; lines = 1 },
-    @{ type = "text"; value = "Product         $ 1.000"; align = "left" },
-    @{ type = "text"; value = "TOTAL           $ 1.000"; align = "left"; bold = $true },
-    @{ type = "feed"; lines = 3 },
-    @{ type = "cut"; mode = "full" }
-  )
-} | ConvertTo-Json -Depth 5
+  receipt = @{
+    title = "My Store"
+    subtitle = "Receipt"
+    blocks = @(
+      @{ type = "text"; lines = @("123 Main Street", "VAT 00-00000000-0"); align = "center" },
+      @{ type = "separator" },
+      @{
+        type = "items"
+        items = @(
+          @{ name = "Coffee"; quantity = "2"; unitPrice = "$ 1.000"; total = "$ 2.000" },
+          @{ name = "Croissant with a long name"; quantity = "1"; unitPrice = "$ 1.500"; total = "$ 1.500" }
+        )
+      },
+      @{
+        type = "totals"
+        rows = @(
+          @{ label = "Subtotal"; value = "$ 3.500" },
+          @{ label = "TOTAL"; value = "$ 3.500"; bold = $true }
+        )
+      },
+      @{ type = "blank"; lines = 3 }
+    )
+  }
+} | ConvertTo-Json -Depth 8
 
 Invoke-RestMethod http://127.0.0.1:17890/api/v1/print -Method Post -ContentType "application/json" -Body $body
 ```
+
+`format: "receipt"` is recommended for most applications because it accepts structured receipt blocks and lets the agent handle deterministic thermal layout. `format: "escpos"` remains available for advanced integrations that need direct control over low-level ESC/POS commands such as QR codes, barcodes, pre-rasterized images, or explicit command ordering.
 
 ## Compatibility Warnings
 
