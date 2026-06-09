@@ -141,6 +141,7 @@ public sealed class EscPosRendererTests
         var bytes = _renderer.Render(JobWith(
             new PrintContentCommand { Type = PrintCommandType.QrCode, Value = "https://example.test" }));
 
+        AssertContainsSequence(bytes, Bytes(0x1B, 0x61, 0x00));
         AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00));
         AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30));
     }
@@ -442,6 +443,75 @@ public sealed class EscPosRendererTests
             PaperWidth.Mm80,
             new PrintJobOptions { Cut = true, CutMode = CutMode.Full }));
 
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x56, 0x00));
+    }
+
+    [Fact]
+    public void RenderReceiptQrBlockWritesQrCodeCommands()
+    {
+        var bytes = _renderer.Render(ReceiptJob(new ReceiptDocument
+        {
+            Blocks =
+            [
+                new ReceiptBlock { Type = "qr", Value = "https://example.test/receipt/123" }
+            ]
+        }));
+
+        AssertContainsSequence(bytes, Bytes(0x1B, 0x61, 0x01));
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00));
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30));
+    }
+
+    [Theory]
+    [InlineData(TextAlignment.Left, 0x00)]
+    [InlineData(TextAlignment.Center, 0x01)]
+    [InlineData(TextAlignment.Right, 0x02)]
+    public void RenderReceiptQrBlockAppliesAlignment(TextAlignment alignment, int expectedValue)
+    {
+        var bytes = _renderer.Render(ReceiptJob(new ReceiptDocument
+        {
+            Blocks =
+            [
+                new ReceiptBlock { Type = "qr", Value = "https://example.test", Align = alignment }
+            ]
+        }));
+
+        AssertContainsSequence(bytes, Bytes(0x1B, 0x61, expectedValue));
+    }
+
+    [Fact]
+    public void RenderReceiptQrBlockAppliesSize()
+    {
+        var bytes = _renderer.Render(ReceiptJob(new ReceiptDocument
+        {
+            Blocks =
+            [
+                new ReceiptBlock { Type = "qr", Value = "https://example.test", Size = 8 }
+            ]
+        }));
+
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x08));
+    }
+
+    [Fact]
+    public void RenderReceiptMixedTextQrBlankAndCut()
+    {
+        var bytes = _renderer.Render(ReceiptJob(
+            new ReceiptDocument
+            {
+                Blocks =
+                [
+                    new ReceiptBlock { Type = "text", Lines = Lines("Scan receipt"), Align = TextAlignment.Center },
+                    new ReceiptBlock { Type = "qr", Value = "https://example.test/receipt/123", Size = 4 },
+                    new ReceiptBlock { Type = "blank", Lines = Number(2) }
+                ]
+            },
+            PaperWidth.Mm80,
+            new PrintJobOptions { Cut = true, CutMode = CutMode.Full }));
+
+        AssertContainsText(bytes, "Scan receipt");
+        AssertContainsSequence(bytes, Bytes(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x04));
+        AssertContainsSequence(bytes, Bytes(0x1B, 0x64, 0x02));
         AssertContainsSequence(bytes, Bytes(0x1D, 0x56, 0x00));
     }
 

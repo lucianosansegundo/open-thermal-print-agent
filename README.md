@@ -124,6 +124,7 @@ $body = @{
           @{ label = "TOTAL"; value = "$ 3.500"; bold = $true }
         )
       },
+      @{ type = "qr"; value = "https://example.test/receipt/demo-001"; align = "center"; size = 4 },
       @{ type = "blank"; lines = 3 }
     )
   }
@@ -132,7 +133,7 @@ $body = @{
 Invoke-RestMethod http://127.0.0.1:17890/api/v1/print -Method Post -ContentType "application/json" -Body $body
 ```
 
-`format: "receipt"` is recommended for most applications because it accepts structured receipt blocks and lets the agent handle deterministic thermal layout. `format: "escpos"` remains available for advanced integrations that need direct control over low-level ESC/POS commands such as QR codes, barcodes, pre-rasterized images, or explicit command ordering.
+`format: "receipt"` is recommended for most applications because it accepts structured receipt blocks and lets the agent handle deterministic thermal layout. `format: "escpos"` remains available for advanced integrations that need direct control over low-level ESC/POS commands such as barcodes, pre-rasterized images, or explicit command ordering.
 
 ## Compatibility Warnings
 

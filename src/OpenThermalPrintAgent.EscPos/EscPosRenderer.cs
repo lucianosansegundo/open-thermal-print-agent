@@ -137,6 +137,9 @@ public sealed class EscPosRenderer
                 case "blank":
                     commands.Add(new PrintContentCommand { Type = PrintCommandType.Feed, Lines = GetBlankLineCount(block.Lines) });
                     break;
+                case "qr":
+                    AddQrCode(commands, block);
+                    break;
             }
         }
 
@@ -199,6 +202,17 @@ public sealed class EscPosRenderer
                 }
             }
         }
+    }
+
+    private static void AddQrCode(List<PrintContentCommand> commands, ReceiptBlock block)
+    {
+        commands.Add(new PrintContentCommand
+        {
+            Type = PrintCommandType.QrCode,
+            Value = block.Value,
+            Align = block.Align ?? TextAlignment.Center,
+            Size = block.Size
+        });
     }
 
     private static string FormatItemDetail(ReceiptItem item, int width)
@@ -343,7 +357,8 @@ public sealed class EscPosRenderer
                 break;
 
             case PrintCommandType.QrCode:
-                WriteQrCode(output, command.Value ?? string.Empty, textEncoding);
+                WriteAlignment(output, command.Align ?? TextAlignment.Left);
+                WriteQrCode(output, command.Value ?? string.Empty, command.Size ?? 4, textEncoding);
                 break;
 
             case PrintCommandType.Barcode:
@@ -422,10 +437,10 @@ public sealed class EscPosRenderer
         output.Write(bytes);
     }
 
-    private static void WriteQrCode(Stream output, string value, Encoding encoding)
+    private static void WriteQrCode(Stream output, string value, int size, Encoding encoding)
     {
         Write(output, [0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]);
-        Write(output, [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x04]);
+        Write(output, [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, (byte)size]);
         Write(output, [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30]);
 
         var data = encoding.GetBytes(value);
