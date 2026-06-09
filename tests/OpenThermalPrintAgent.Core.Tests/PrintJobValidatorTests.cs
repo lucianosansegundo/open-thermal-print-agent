@@ -1,6 +1,7 @@
 using OpenThermalPrintAgent.Core.Errors;
 using OpenThermalPrintAgent.Core.Models;
 using OpenThermalPrintAgent.Core.Validation;
+using System.Text.Json;
 
 namespace OpenThermalPrintAgent.Core.Tests;
 
@@ -191,6 +192,85 @@ public sealed class PrintJobValidatorTests
         Assert.Contains(error.Details, detail => detail.Contains("widthBytes * heightDots", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ValidateReturnsNullForValidReceiptJob()
+    {
+        var request = ValidReceiptRequest();
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public void ValidateRejectsMissingReceiptForReceiptFormat()
+    {
+        var request = ValidRequest() with { Format = "receipt", Content = [] };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("receipt is required", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateRejectsEmptyReceipt()
+    {
+        var request = ValidReceiptRequest() with
+        {
+            Receipt = new ReceiptDocument()
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("title, subtitle, or at least one block", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateRejectsUnknownReceiptBlockType()
+    {
+        var request = ValidReceiptRequest() with
+        {
+            Receipt = new ReceiptDocument
+            {
+                Blocks =
+                [
+                    new ReceiptBlock { Type = "unknown" }
+                ]
+            }
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("receipt.blocks[0].type", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateRejectsReceiptTextBlockWithoutLines()
+    {
+        var request = ValidReceiptRequest() with
+        {
+            Receipt = new ReceiptDocument
+            {
+                Blocks =
+                [
+                    new ReceiptBlock { Type = "text" }
+                ]
+            }
+        };
+
+        var error = PrintJobValidator.Validate(request);
+
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidPayload, error.Code);
+        Assert.Contains(error.Details, detail => detail.Contains("receipt.blocks[0].lines", StringComparison.Ordinal));
+    }
+
     private static PrintJobRequest ValidRequest() => new()
     {
         PrinterName = "POS-80",
@@ -206,5 +286,25 @@ public sealed class PrintJobValidatorTests
                 Align = TextAlignment.Left
             }
         ]
+    };
+
+    private static PrintJobRequest ValidReceiptRequest() => new()
+    {
+        PrinterName = "POS-80",
+        Format = "receipt",
+        PaperWidth = PaperWidth.Mm80,
+        Options = new PrintJobOptions { Copies = 1 },
+        Receipt = new ReceiptDocument
+        {
+            Title = "My Store",
+            Blocks =
+            [
+                new ReceiptBlock
+                {
+                    Type = "text",
+                    Lines = JsonSerializer.SerializeToElement(new[] { "Hello" })
+                }
+            ]
+        }
     };
 }

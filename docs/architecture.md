@@ -7,6 +7,7 @@ web app or POS frontend
   -> HTTP request to 127.0.0.1
   -> local agent
   -> neutral print job validation
+  -> semantic receipt layout or low-level ESC/POS command handling
   -> ESC/POS renderer
   -> Windows raw printer adapter
   -> installed printer queue
@@ -25,7 +26,9 @@ web app or POS frontend
 
 ### ESC/POS
 
-`OpenThermalPrintAgent.EscPos` converts neutral print commands into ESC/POS byte sequences. It supports the MVP command set: text, alignment, bold, feed, cut, and cash drawer kick.
+`OpenThermalPrintAgent.EscPos` converts neutral print commands into ESC/POS byte sequences. It supports text, alignment, bold, feed, cut, cash drawer kick, QR code, CODE128 barcode, and pre-rasterized image commands.
+
+For `format: "receipt"`, the renderer first converts semantic receipt blocks into deterministic text/layout commands, then emits ESC/POS bytes. For `format: "escpos"`, it treats the submitted content commands as the low-level command list directly.
 
 ### Windows
 
@@ -33,4 +36,9 @@ web app or POS frontend
 
 ## Generic Design
 
-The agent intentionally uses generic terms such as print job, printer, receipt, ticket, drawer, and local agent. It does not model sales, invoices, fiscal documents, or any specific POS backend. Integrations should translate their own domain data into the generic print job API.
+The agent intentionally uses generic terms such as print job, printer, receipt, ticket, drawer, and local agent. It does not model sales, invoices, fiscal documents, country-specific compliance rules, or any specific POS backend.
+
+Integrations should translate their own domain data into either:
+
+- `format: "receipt"` for semantic receipt blocks that the agent lays out.
+- `format: "escpos"` for advanced low-level ESC/POS command control.

@@ -7,6 +7,7 @@
 - List installed printers.
 - Print a test receipt.
 - Print simple generic ESC/POS jobs.
+- Print semantic receipt jobs with structured blocks.
 - Support 58mm and 80mm paper width values.
 - Support text, alignment, bold, feed, paper cut, and cash drawer kick.
 - Support configurable ESC/POS cut modes.
@@ -19,6 +20,7 @@
 - Local Minimal API on `127.0.0.1:17890`.
 - Configured CORS with explicit local origins.
 - ESC/POS renderer for text, alignment, bold, feed, cut, and drawer kick.
+- Semantic receipt format with text, key/value, separator, items, totals, and blank blocks.
 - ESC/POS cut modes: `none`, `full`, `partial`, `feedAndFull`, and `feedAndPartial`.
 - Versioned local API under `/api/v1` with legacy MVP aliases.
 - Windows raw printer adapter using installed printer queues.
@@ -42,6 +44,7 @@
 - Driver-specific raw printing compatibility checks.
 - Additional hardware compatibility reports.
 - Physical validation of encoding profiles per printer model.
+- Physical validation of semantic receipt layout per printer model.
 - Tray UI remains pending.
 - Persistent queue storage remains pending.
 
@@ -57,6 +60,7 @@
 - Backend polling connector.
 - Linux and macOS adapters.
 - Broader barcode formats and PNG/JPEG logo preprocessing.
+- Additional semantic receipt blocks for QR codes, barcodes, images, and optional HTML-to-raster rendering.
 - ESC/POS code page selection commands and broader internationalization.
 - Better physical printer status, offline detection, and paper-out detection.
 - Exportable logs.

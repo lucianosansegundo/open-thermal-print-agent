@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using OpenThermalPrintAgent.Core.Models;
 using OpenThermalPrintAgent.Core.Validation;
 
@@ -6,6 +7,9 @@ namespace OpenThermalPrintAgent.EscPos;
 
 public sealed class EscPosRenderer
 {
+    public const int Mm58CharactersPerLine = 32;
+    public const int Mm80CharactersPerLine = 42;
+
     private static readonly byte[] Initialize = [0x1B, 0x40];
     private static readonly byte[] BoldOn = [0x1B, 0x45, 0x01];
     private static readonly byte[] BoldOff = [0x1B, 0x45, 0x00];
@@ -40,7 +44,8 @@ public sealed class EscPosRenderer
                 Write(output, DrawerKick);
             }
 
-            foreach (var command in request.Content)
+            var commands = ResolveCommands(request);
+            foreach (var command in commands)
             {
                 WriteCommand(output, command, textEncoding);
             }
@@ -86,6 +91,227 @@ public sealed class EscPosRenderer
         };
 
         return Render(job);
+    }
+
+    private static IReadOnlyList<PrintContentCommand> ResolveCommands(PrintJobRequest request)
+    {
+        return string.Equals(request.Format, "receipt", StringComparison.OrdinalIgnoreCase)
+            ? RenderReceiptCommands(request.Receipt!, request.PaperWidth)
+            : request.Content;
+    }
+
+    private static IReadOnlyList<PrintContentCommand> RenderReceiptCommands(ReceiptDocument receipt, PaperWidth paperWidth)
+    {
+        var width = GetCharactersPerLine(paperWidth);
+        var commands = new List<PrintContentCommand>();
+
+        if (!string.IsNullOrWhiteSpace(receipt.Title))
+        {
+            AddText(commands, receipt.Title.Trim(), TextAlignment.Center, bold: true);
+        }
+
+        if (!string.IsNullOrWhiteSpace(receipt.Subtitle))
+        {
+            AddText(commands, receipt.Subtitle.Trim(), TextAlignment.Center, bold: false);
+        }
+
+        foreach (var block in receipt.Blocks)
+        {
+            switch (block.Type.Trim().ToLowerInvariant())
+            {
+                case "text":
+                    AddTextBlock(commands, block, width);
+                    break;
+                case "keyvalue":
+                    AddKeyValueRows(commands, block.Rows, width);
+                    break;
+                case "separator":
+                    AddSeparator(commands, block.SeparatorChar, width);
+                    break;
+                case "items":
+                    AddItems(commands, block.Items, width);
+                    break;
+                case "totals":
+                    AddKeyValueRows(commands, block.Rows, width);
+                    break;
+                case "blank":
+                    commands.Add(new PrintContentCommand { Type = PrintCommandType.Feed, Lines = GetBlankLineCount(block.Lines) });
+                    break;
+            }
+        }
+
+        return commands;
+    }
+
+    private static void AddTextBlock(List<PrintContentCommand> commands, ReceiptBlock block, int width)
+    {
+        if (!string.IsNullOrWhiteSpace(block.Label))
+        {
+            AddText(commands, block.Label.Trim(), TextAlignment.Left, bold: true);
+        }
+
+        foreach (var line in GetTextLines(block.Lines))
+        {
+            foreach (var wrapped in Wrap(line, width))
+            {
+                AddText(commands, wrapped, block.Align ?? TextAlignment.Left, block.Bold ?? false);
+            }
+        }
+    }
+
+    private static void AddKeyValueRows(List<PrintContentCommand> commands, IReadOnlyList<ReceiptKeyValueRow> rows, int width)
+    {
+        foreach (var row in rows)
+        {
+            foreach (var line in FormatKeyValue(row.Label, row.Value, width))
+            {
+                AddText(commands, line, TextAlignment.Left, row.Bold ?? false);
+            }
+        }
+    }
+
+    private static void AddSeparator(List<PrintContentCommand> commands, string? separatorChar, int width)
+    {
+        var value = string.IsNullOrEmpty(separatorChar) ? "-" : separatorChar[0].ToString();
+        AddText(commands, new string(value[0], width), TextAlignment.Left, bold: false);
+    }
+
+    private static void AddItems(List<PrintContentCommand> commands, IReadOnlyList<ReceiptItem> items, int width)
+    {
+        foreach (var item in items)
+        {
+            foreach (var line in Wrap(item.Name, width))
+            {
+                AddText(commands, line, TextAlignment.Left, bold: false);
+            }
+
+            var detail = FormatItemDetail(item, width);
+            if (!string.IsNullOrWhiteSpace(detail))
+            {
+                AddText(commands, detail, TextAlignment.Left, bold: false);
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.Comment))
+            {
+                foreach (var line in Wrap(item.Comment.Trim(), Math.Max(1, width - 2)))
+                {
+                    AddText(commands, $"  {line}", TextAlignment.Left, bold: false);
+                }
+            }
+        }
+    }
+
+    private static string FormatItemDetail(ReceiptItem item, int width)
+    {
+        var left = string.Join(" ", new[] { item.Quantity, item.UnitPrice }.Where(value => !string.IsNullOrWhiteSpace(value))).Trim();
+        var right = item.Total?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(left))
+        {
+            return right;
+        }
+
+        if (string.IsNullOrWhiteSpace(right))
+        {
+            return left;
+        }
+
+        return FormatSingleKeyValue(left, right, width);
+    }
+
+    private static IReadOnlyList<string> FormatKeyValue(string label, string value, int width)
+    {
+        if (label.Length + value.Length + 1 <= width)
+        {
+            return [FormatSingleKeyValue(label, value, width)];
+        }
+
+        var valueWidth = Math.Min(value.Length, Math.Max(8, width / 3));
+        var labelWidth = Math.Max(1, width - valueWidth - 1);
+        var labelLines = Wrap(label, labelWidth).ToList();
+        var result = new List<string>();
+
+        for (var index = 0; index < labelLines.Count; index++)
+        {
+            result.Add(index == labelLines.Count - 1
+                ? FormatSingleKeyValue(labelLines[index], value, width)
+                : labelLines[index]);
+        }
+
+        return result;
+    }
+
+    private static string FormatSingleKeyValue(string label, string value, int width)
+    {
+        if (value.Length >= width)
+        {
+            return value[^width..];
+        }
+
+        var availableLabel = Math.Max(0, width - value.Length - 1);
+        var normalizedLabel = label.Length > availableLabel ? label[..availableLabel] : label;
+        var spaces = Math.Max(1, width - normalizedLabel.Length - value.Length);
+        return normalizedLabel + new string(' ', spaces) + value;
+    }
+
+    private static IEnumerable<string> Wrap(string value, int width)
+    {
+        var remaining = (value ?? string.Empty).Trim();
+        if (remaining.Length == 0)
+        {
+            yield return string.Empty;
+            yield break;
+        }
+
+        while (remaining.Length > width)
+        {
+            var splitAt = remaining.LastIndexOf(' ', width);
+            if (splitAt <= 0)
+            {
+                splitAt = width;
+            }
+
+            yield return remaining[..splitAt].TrimEnd();
+            remaining = remaining[splitAt..].TrimStart();
+        }
+
+        yield return remaining;
+    }
+
+    private static IEnumerable<string> GetTextLines(JsonElement? lines)
+    {
+        if (lines is null || lines.Value.ValueKind != JsonValueKind.Array)
+        {
+            yield break;
+        }
+
+        foreach (var line in lines.Value.EnumerateArray())
+        {
+            yield return line.GetString() ?? string.Empty;
+        }
+    }
+
+    private static int GetBlankLineCount(JsonElement? lines)
+    {
+        return lines is not null && lines.Value.ValueKind == JsonValueKind.Number && lines.Value.TryGetInt32(out var value)
+            ? value
+            : 1;
+    }
+
+    private static int GetCharactersPerLine(PaperWidth paperWidth)
+    {
+        return paperWidth == PaperWidth.Mm58 ? Mm58CharactersPerLine : Mm80CharactersPerLine;
+    }
+
+    private static void AddText(List<PrintContentCommand> commands, string value, TextAlignment align, bool bold)
+    {
+        commands.Add(new PrintContentCommand
+        {
+            Type = PrintCommandType.Text,
+            Value = value,
+            Align = align,
+            Bold = bold
+        });
     }
 
     private static void WriteCommand(Stream output, PrintContentCommand command, Encoding textEncoding)

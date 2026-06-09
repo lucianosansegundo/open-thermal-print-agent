@@ -117,7 +117,103 @@ Response:
 
 ## POST /api/v1/print
 
-Prints a generic ESC/POS job.
+Prints a job using either the semantic `receipt` format or the low-level `escpos` format.
+
+### Semantic Receipt Format
+
+`format: "receipt"` is recommended for most applications. It accepts structured receipt or ticket data and renders it to ESC/POS internally. The agent does not apply legal, fiscal, country-specific, or business-specific rules; client applications are responsible for the content they send.
+
+Request:
+
+```json
+{
+  "jobId": "optional-client-job-id",
+  "printerName": "POS-80",
+  "format": "receipt",
+  "paperWidth": "80mm",
+  "options": {
+    "cut": true,
+    "cutMode": "full",
+    "encodingProfile": "latin1",
+    "openDrawer": false,
+    "copies": 1
+  },
+  "receipt": {
+    "title": "My Store",
+    "subtitle": "Receipt",
+    "blocks": [
+      {
+        "type": "text",
+        "lines": ["123 Main Street", "VAT 00-00000000-0"],
+        "align": "center"
+      },
+      {
+        "type": "keyValue",
+        "rows": [
+          { "label": "Date", "value": "2026-06-08 15:30" },
+          { "label": "Order", "value": "#1042" }
+        ]
+      },
+      { "type": "separator" },
+      {
+        "type": "items",
+        "items": [
+          { "name": "Coffee", "quantity": "2", "unitPrice": "$ 1.000", "total": "$ 2.000" },
+          { "name": "Croissant with a long name", "quantity": "1", "unitPrice": "$ 1.500", "total": "$ 1.500" }
+        ]
+      },
+      {
+        "type": "totals",
+        "rows": [
+          { "label": "Subtotal", "value": "$ 3.500" },
+          { "label": "TOTAL", "value": "$ 3.500", "bold": true }
+        ]
+      },
+      {
+        "type": "text",
+        "label": "Legal notice",
+        "lines": ["Legal, tax, compliance, or country-specific text can go here."],
+        "align": "left"
+      },
+      {
+        "type": "text",
+        "lines": ["Thank you!"],
+        "align": "center"
+      },
+      { "type": "blank", "lines": 3 }
+    ]
+  }
+}
+```
+
+Receipt-level fields:
+
+- `title`: optional helper rendered centered and bold.
+- `subtitle`: optional helper rendered centered.
+- `blocks`: extensible ordered block list.
+
+Supported receipt blocks:
+
+- `text`: `label` optional, `lines` required string array, `align` optional (`left`, `center`, `right`), `bold` optional.
+- `keyValue`: `rows` required array of `{ "label": "...", "value": "...", "bold": false }`; label is rendered left and value right.
+- `separator`: `char` optional single character, default `-`; rendered as a full-width line.
+- `items`: `items` required array of `{ "name": "...", "quantity": "...", "unitPrice": "...", "total": "...", "comment": "..." }`; long names wrap deterministically.
+- `totals`: `rows` required array of `{ "label": "...", "value": "...", "bold": false }`.
+- `blank`: `lines` optional integer from 1 to 20, default 1.
+
+Receipt layout uses deterministic character widths: 32 characters for `58mm` and 42 characters for `80mm`. These are conservative defaults for common thermal printers; exact physical output still depends on printer font settings.
+
+Validation rules:
+
+- `format: "receipt"` requires `receipt`.
+- `receipt` must include `title`, `subtitle`, or at least one block.
+- `receipt.blocks[].type` must be one of the supported block types.
+- Required fields are validated per block.
+- Existing `paperWidth`, `copies`, `cutMode`, and `encodingProfile` validation still applies.
+
+### Low-Level ESC/POS Format
+
+`format: "escpos"` is the advanced escape hatch for clients that need direct control over command ordering and ESC/POS-specific features.
 
 Request:
 
