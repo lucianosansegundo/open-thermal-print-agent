@@ -17,68 +17,97 @@ using OpenThermalPrintAgent.Host.Configuration;
 using OpenThermalPrintAgent.Host.Json;
 using OpenThermalPrintAgent.Host.Queue;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseWindowsService(options =>
+if (args.FirstOrDefault() is "--configure" or "--stop" or "--check")
 {
-    options.ServiceName = "Open Thermal Print Agent";
-});
+    Environment.Exit(InstalledRuntime.Command(args));
+}
 
-builder.Services.Configure<AgentOptions>(builder.Configuration.GetSection("Agent"));
-var agentOptions = builder.Configuration.GetSection("Agent").Get<AgentOptions>() ?? new AgentOptions();
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.Listen(IPAddress.Loopback, agentOptions.Port);
-    options.Limits.MaxRequestBodySize = agentOptions.MaxRequestBodyBytes;
-});
-
-builder.Services.Configure<JsonOptions>(options =>
-{
-    options.SerializerOptions.Converters.Add(new PaperWidthJsonConverter());
-    options.SerializerOptions.Converters.Add(new TextAlignmentJsonConverter());
-    options.SerializerOptions.Converters.Add(new PrintCommandTypeJsonConverter());
-    options.SerializerOptions.Converters.Add(new CutModeJsonConverter());
-    options.SerializerOptions.Converters.Add(new EncodingProfileJsonConverter());
-    options.SerializerOptions.Converters.Add(new BarcodeTypeJsonConverter());
-});
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("ConfiguredOrigins", policy =>
-    {
-        policy.WithOrigins(agentOptions.AllowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
-
-builder.Services.AddSingleton<EscPosRenderer>();
-builder.Services.AddSingleton<PrintJobQueue>();
-builder.Services.AddHostedService(provider => provider.GetRequiredService<PrintJobQueue>());
-builder.Services.AddPlatformPrinting();
-
-var app = builder.Build();
-
-app.UseCors("ConfiguredOrigins");
-app.UseWebSockets();
-
+var installed = args.Contains("--installed");
 const string ApiVersion = "v1";
 const string ApiPrefix = "/api/v1";
+try
+{
+    var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+    {
+        Args = args,
+        ContentRootPath = installed ? AppContext.BaseDirectory : null
+    });
+    if (installed)
+    {
+        var config = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(InstalledConfiguration.ConfigPath))!.AsObject();
+        InstalledConfiguration.Validate(config);
+        builder.Configuration.Sources.Clear();
+        builder.Configuration.AddJsonFile(InstalledConfiguration.ConfigPath, optional: false, reloadOnChange: false);
+        // Suppress request URL logging, including WebSocket query tokens.
+        builder.Logging.ClearProviders();
+        builder.Logging.AddProvider(new InstalledLogProvider());
+    }
+    builder.Host.UseWindowsService(options =>
+    {
+        options.ServiceName = "Open Thermal Print Agent";
+    });
 
-MapEndpoints(app);
-MapEndpoints(app.MapGroup(ApiPrefix));
+    builder.Services.Configure<AgentOptions>(builder.Configuration.GetSection("Agent"));
+    var agentOptions = builder.Configuration.GetSection("Agent").Get<AgentOptions>() ?? new AgentOptions();
 
-app.Run();
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Listen(IPAddress.Loopback, agentOptions.Port);
+        options.Limits.MaxRequestBodySize = agentOptions.MaxRequestBodyBytes;
+    });
+
+    builder.Services.Configure<JsonOptions>(options =>
+    {
+        options.SerializerOptions.Converters.Add(new PaperWidthJsonConverter());
+        options.SerializerOptions.Converters.Add(new TextAlignmentJsonConverter());
+        options.SerializerOptions.Converters.Add(new PrintCommandTypeJsonConverter());
+        options.SerializerOptions.Converters.Add(new CutModeJsonConverter());
+        options.SerializerOptions.Converters.Add(new EncodingProfileJsonConverter());
+        options.SerializerOptions.Converters.Add(new BarcodeTypeJsonConverter());
+    });
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("ConfiguredOrigins", policy =>
+        {
+            policy.WithOrigins(agentOptions.AllowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+
+    builder.Services.AddSingleton<EscPosRenderer>();
+    builder.Services.AddSingleton<PrintJobQueue>();
+    builder.Services.AddHostedService(provider => provider.GetRequiredService<PrintJobQueue>());
+    builder.Services.AddPlatformPrinting();
+
+    var app = builder.Build();
+    using var installedRuntime = installed ? new InstalledRuntime(app) : null;
+
+    app.UseCors("ConfiguredOrigins");
+    app.UseWebSockets();
+
+    MapEndpoints(app);
+    MapEndpoints(app.MapGroup(ApiPrefix));
+
+    app.Run();
+}
+catch (Exception exception) when (installed)
+{
+    InstalledRuntime.LogFailure(exception);
+    Environment.ExitCode = 1;
+}
 
 static void MapEndpoints(IEndpointRouteBuilder endpoints)
 {
-    endpoints.MapGet("/health", () => Results.Ok(new
+    endpoints.MapGet("/health", (IConfiguration configuration) => Results.Ok(new
 {
     status = "ok",
     name = "open-thermal-print-agent",
     version = GetAgentVersion(),
     agentVersion = GetAgentVersion(),
     apiVersion = ApiVersion,
+    installationId = configuration["InstallationId"],
     platform = RuntimeInformation.OSDescription
 }));
 

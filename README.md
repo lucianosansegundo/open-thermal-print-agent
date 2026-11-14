@@ -6,12 +6,13 @@ The MVP is Windows-first and targets installed ESC/POS-compatible thermal printe
 
 ## Status
 
-MVP / experimental. The project is suitable for development and hardware validation, not production deployment without additional security, installer, monitoring, and printer compatibility work.
+MVP / experimental. A self-contained Windows installer provides per-user setup, token security and sign-in startup. Deployments require printer-specific validation and operational monitoring.
 
 ## Requirements
 
 - Windows 10 or later for the initial printer adapter.
-- .NET 8 SDK or later.
+- Customer installation uses the self-contained [Windows installer](docs/windows-installer.md), including sign-in startup and local token setup.
+- Development builds require the .NET 8 SDK.
 - An installed thermal printer driver or raw-capable printer queue.
 - A browser or POS frontend allowed by the agent CORS configuration.
 
@@ -30,6 +31,8 @@ http://127.0.0.1:17890
 ```
 
 Configuration is in `src/OpenThermalPrintAgent.Host/appsettings.json`.
+
+Installed deployments use `%LOCALAPPDATA%\OpenThermalPrintAgent\agent.json`, with mandatory generated token security and explicit site origins. The installer preserves this configuration across upgrades and reinstalls.
 
 Print endpoints can optionally require a local token. Token security is disabled by default for development. Enable `Agent:Security:RequireToken` and set `Agent:Security:Token` to require either `X-OpenThermalPrintAgent-Token` or `Authorization: Bearer <token>` on print requests.
 

@@ -2,6 +2,8 @@
 
 The MVP is designed for local development and controlled deployments.
 
+The per-user Windows installer enables token security, generates a cryptographically random 32-byte token and requires an exact site origin. Configuration and local setup information live under the current user's LocalAppData folder, separate from binaries. Upgrades preserve the token. Installed mode validates token security and explicit origins at startup, and excludes development origins. The local HTML setup file provides the token for the operator to copy into their POS. HTTP endpoints never expose the configured token. Lifecycle/error metadata logs omit URLs, token values and receipt content. Uninstall retains pairing data for reinstalls. See [Windows installer](windows-installer.md) for removal instructions.
+
 ## Localhost Only
 
 The HTTP server binds to `127.0.0.1` by default. It must not be exposed on LAN or public interfaces in the MVP.
