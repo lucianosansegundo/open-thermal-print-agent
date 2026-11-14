@@ -26,6 +26,8 @@ Interactive setup connects your POS in the default browser automatically. Select
 
 The setup information is a local HTML file. HTTP health responses contain an installation identifier and version. The permanent token stays in the current user's local configuration and the connected browser. The setup file contains a private one-use connection link that expires after five minutes. The agent stores only the nonce hash and validates the exact configured HTTPS origin, installation identity and expiry before consuming the handoff atomically. Keep the configuration and setup files private.
 
+Automatic connection uses the first configured HTTPS origin. Existing HTTP-only installations retain their configuration and token through upgrades. For these installations, setup and `--connect` prepare a private local helper with the token under **Advanced manual connection** for the POS advanced settings. This fallback creates no browser handoff grant. Silent setup prepares the helper without opening a browser. Configuring an HTTPS origin enables automatic connection. Allow local-network access when the browser asks.
+
 ## Files and startup
 
 - Binaries live in `%LOCALAPPDATA%\Programs\Open Thermal Print Agent`.

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Net;
 using OpenThermalPrintAgent.Host.Configuration;
 
 namespace OpenThermalPrintAgent.Host;
@@ -10,6 +11,34 @@ public sealed class LocalConnection(string directory, string? installationId, Ag
     private string HandoffPath => Path.Combine(directory, "connection.json");
     private string MutexName => (OperatingSystem.IsWindows() ? @"Global\" : "") +
         "OpenThermalPrintAgent-connection-" + Hash(Path.GetFullPath(HandoffPath).ToUpperInvariant());
+
+    public string Prepare(DateTimeOffset now)
+    {
+        var origin = options.AllowedOrigins.FirstOrDefault(value => value.StartsWith("https://", StringComparison.Ordinal));
+        var setupPath = Path.Combine(directory, "setup.html");
+        var url = origin is null ? new Uri(Path.GetFullPath(setupPath)).AbsoluteUri : Create(origin, now);
+        var instructions = origin is null
+            ? $$"""
+                <p>Automatic browser connection requires a configured HTTPS site origin. Your existing HTTP site and local token are preserved.</p>
+                <p>Use the POS advanced connection settings for this HTTP installation. Keep this local file private to your Windows account.</p>
+                <details><summary>Advanced manual connection</summary><label for="token">Local agent token</label>
+                <input id="token" type="password" readonly value="{{WebUtility.HtmlEncode(options.Security.Token)}}" onclick="this.select()"></details>
+                """
+            : $$"""
+                <p><a href="{{WebUtility.HtmlEncode(url)}}">Connect your POS browser</a></p>
+                <p>This private link expires in five minutes and works once. Open it in the browser profile used for your POS.</p>
+                <p>Allow local network access when your browser asks. Automatic browser connection requires HTTPS.</p>
+                """;
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(setupPath, $$"""
+            <!doctype html><html lang="en"><meta charset="utf-8"><title>Connect Open Thermal Print Agent</title>
+            <style>body{font:18px system-ui;max-width:850px;margin:3em auto;padding:1em}input{width:100%;padding:10px}</style>
+            <h1>Connect your printer agent</h1>{{instructions}}
+            <p>To reconnect, use Connect Open Thermal Print Agent from the Windows Start menu.</p>
+            <p>Agent URL <code>http://127.0.0.1:17890/api/v1</code></p></html>
+            """);
+        return url;
+    }
 
     public string Create(string origin, DateTimeOffset now)
     {

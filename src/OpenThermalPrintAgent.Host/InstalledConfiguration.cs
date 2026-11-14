@@ -94,7 +94,7 @@ public static class InstalledConfiguration
             <style>body{font:18px system-ui;max-width:850px;margin:3em auto;padding:1em}input{width:100%;font:16px monospace;padding:10px}</style>
             <h1>Open Thermal Print Agent</h1><p>Agent URL <code>http://127.0.0.1:17890/api/v1</code></p>
             <p>Allowed site origins {{origins}}</p>
-            <p>Setup connects your POS in the default browser. Choose your Windows thermal printer in the POS settings and print a test receipt.</p>
+            <p>Setup connects HTTPS sites in the default browser. HTTP installations use advanced manual connection. Choose your Windows thermal printer in the POS settings and print a test receipt.</p>
             <p>To reconnect, use the Start menu shortcut Connect Open Thermal Print Agent. Use the same default browser profile for the POS.</p>
             <p><a href="http://127.0.0.1:17890/api/v1/health">Check agent health</a></p>
             <p>The agent starts when this Windows user signs in.</p>
