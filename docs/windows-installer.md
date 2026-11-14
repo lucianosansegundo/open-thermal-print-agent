@@ -12,7 +12,15 @@ For RabbitWarren staging, a silent installation is:
 .\open-thermal-print-agent-0.2.0-win-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SITEORIGIN=https://d2vfhhw5ryvsll.cloudfront.net
 ```
 
-Use `Start-Process -Wait -PassThru` when scripting installation to inspect the installer's exit code. The installer starts the agent and checks its installation identity at `http://127.0.0.1:17890/api/v1/health`. A conflicting process on that port causes a visible installation error or a nonzero silent installer exit. Resolve the conflict and rerun setup. Setup only signals the installed agent belonging to the current user.
+When scripting installation, wait for the installer process itself using its process object. PowerShell's `Start-Process -Wait` waits for the child-process tree, which includes the long-running agent launched by setup.
+
+```powershell
+$setup = Start-Process .\open-thermal-print-agent-0.2.0-win-x64.exe -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SITEORIGIN=https://d2vfhhw5ryvsll.cloudfront.net' -PassThru
+$setup.WaitForExit()
+if ($setup.ExitCode -ne 0) { throw "Agent installation failed with exit code $($setup.ExitCode)." }
+```
+
+Use the same process-object wait when scripting the uninstaller. The installer starts the agent and checks its installation identity at `http://127.0.0.1:17890/api/v1/health`. A conflicting process on that port causes a visible installation error or a nonzero silent installer exit. Resolve the conflict and rerun setup. Setup only signals the installed agent belonging to the current user.
 
 Open **Open Thermal Print Agent Setup** from the Start menu. Copy the generated local token into your POS printer settings, configure the URL `http://127.0.0.1:17890`, select an installed Windows printer and print a test receipt. RabbitWarren stores this token on the current browser device. Each Windows user receives an independent token and configuration.
 
