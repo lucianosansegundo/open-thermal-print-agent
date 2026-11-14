@@ -21,7 +21,8 @@ public sealed class InstalledConfigurationTests : IDisposable
         Assert.True(options.Security.RequireToken);
         Assert.False(options.Queue.Enabled);
         var setup = File.ReadAllText(Path.Combine(directory, "setup.html"));
-        Assert.Contains(options.Security.Token!, setup);
+        Assert.DoesNotContain(options.Security.Token!, setup);
+        Assert.Contains("default browser", setup);
         Assert.Contains("Agent URL <code>http://127.0.0.1:17890/api/v1</code>", setup);
     }
 

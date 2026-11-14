@@ -1,5 +1,9 @@
 using System.Security.Principal;
+using System.Diagnostics;
+using System.Net;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.Configuration;
+using OpenThermalPrintAgent.Host.Configuration;
 
 namespace OpenThermalPrintAgent.Host;
 
@@ -48,6 +52,26 @@ internal sealed class InstalledRuntime : IDisposable
             if (args[0] == "--configure")
             {
                 InstalledConfiguration.Ensure(InstalledConfiguration.ConfigPath, args[1]);
+                return 0;
+            }
+            if (args[0] == "--connect")
+            {
+                // Verify the listener belongs to this Windows user's installation before issuing a handoff.
+                if (Command(["--check"]) != 0) return 1;
+                var configuration = new ConfigurationBuilder().AddJsonFile(InstalledConfiguration.ConfigPath).Build();
+                var options = configuration.GetSection("Agent").Get<AgentOptions>()!;
+                var connection = new LocalConnection(InstalledConfiguration.DirectoryPath, configuration["InstallationId"], options);
+                var url = connection.Create(options.AllowedOrigins[0], DateTimeOffset.UtcNow);
+                File.WriteAllText(Path.Combine(InstalledConfiguration.DirectoryPath, "setup.html"), $$"""
+                    <!doctype html><html lang="en"><meta charset="utf-8"><title>Connect Open Thermal Print Agent</title>
+                    <style>body{font:18px system-ui;max-width:850px;margin:3em auto;padding:1em}</style>
+                    <h1>Connect your printer agent</h1>
+                    <p><a href="{{WebUtility.HtmlEncode(url)}}">Connect your POS browser</a></p>
+                    <p>This private link expires in five minutes and works once. Open it in the browser profile used for your POS.</p>
+                    <p>To create a fresh link, use Connect Open Thermal Print Agent from the Windows Start menu.</p>
+                    <p>Agent URL <code>http://127.0.0.1:17890/api/v1</code></p></html>
+                    """);
+                if (!args.Contains("--no-open")) Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
                 return 0;
             }
             if (args[0] == "--stop")

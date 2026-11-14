@@ -1,5 +1,8 @@
 #define MyAppName "Open Thermal Print Agent"
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.3.0"
+#ifndef DefaultSiteOrigin
+  #define DefaultSiteOrigin ""
+#endif
 #define MyAppExeName "OpenThermalPrintAgent.Host.exe"
 
 [Setup]
@@ -33,11 +36,12 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 [Icons]
 Name: "{group}\Open Thermal Print Agent"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--installed"
 Name: "{group}\Open Thermal Print Agent Setup"; Filename: "{localappdata}\OpenThermalPrintAgent\setup.html"
+Name: "{group}\Connect Open Thermal Print Agent"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--connect"
 Name: "{group}\Open Thermal Print Agent Health"; Filename: "http://127.0.0.1:17890/api/v1/health"
 Name: "{group}\Open Thermal Print Agent Logs"; Filename: "{localappdata}\OpenThermalPrintAgent\logs"
 
 [Run]
-Filename: "{localappdata}\OpenThermalPrintAgent\setup.html"; Description: "Open local setup information to copy your token"; Flags: shellexec postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--connect"; Description: "Connect your POS in the default browser"; Flags: postinstall skipifsilent runhidden
 
 [Code]
 var
@@ -49,7 +53,7 @@ begin
     'Enter the exact site origin permitted to use this printer agent.',
     'Use the HTTPS address of your POS site, without a path. Existing configuration and token are preserved on upgrade. To change sites later, edit agent.json and restart the agent.');
   OriginPage.Add('Site origin', False);
-  OriginPage.Values[0] := ExpandConstant('{param:SITEORIGIN|}');
+  OriginPage.Values[0] := ExpandConstant('{param:SITEORIGIN|{#DefaultSiteOrigin}}');
 end;
 
 function ValidOrigin(Origin: String): Boolean;
@@ -118,6 +122,8 @@ begin
       RaiseException('Agent could not start. Open the Start menu agent logs shortcut.');
     if not Exec(ExePath, '--check', '', SW_HIDE, ewWaitUntilTerminated, Code) or (Code <> 0) then
       RaiseException('Agent health check failed. Review the Start menu agent logs. Another application may occupy port 17890.');
+    if not Exec(ExePath, '--connect --no-open', '', SW_HIDE, ewWaitUntilTerminated, Code) or (Code <> 0) then
+      RaiseException('Browser connection could not be prepared. Use Connect Open Thermal Print Agent from the Start menu.');
   end;
 end;
 

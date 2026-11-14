@@ -17,7 +17,7 @@ using OpenThermalPrintAgent.Host.Configuration;
 using OpenThermalPrintAgent.Host.Json;
 using OpenThermalPrintAgent.Host.Queue;
 
-if (args.FirstOrDefault() is "--configure" or "--stop" or "--check")
+if (args.FirstOrDefault() is "--configure" or "--stop" or "--check" or "--connect")
 {
     Environment.Exit(InstalledRuntime.Command(args));
 }
@@ -77,6 +77,9 @@ try
     });
 
     builder.Services.AddSingleton<EscPosRenderer>();
+    builder.Services.AddSingleton(provider => new LocalConnection(InstalledConfiguration.DirectoryPath,
+        provider.GetRequiredService<IConfiguration>()["InstallationId"],
+        provider.GetRequiredService<IOptions<AgentOptions>>().Value));
     builder.Services.AddSingleton<PrintJobQueue>();
     builder.Services.AddHostedService(provider => provider.GetRequiredService<PrintJobQueue>());
     builder.Services.AddPlatformPrinting();
@@ -100,6 +103,8 @@ catch (Exception exception) when (installed)
 
 static void MapEndpoints(IEndpointRouteBuilder endpoints)
 {
+    endpoints.MapPost("/pairing/complete", (HttpRequest request, LocalConnection.ConnectionRequest body, LocalConnection connection) =>
+        connection.Complete(request, body));
     endpoints.MapGet("/health", (IConfiguration configuration) => Results.Ok(new
 {
     status = "ok",
