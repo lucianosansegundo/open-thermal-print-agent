@@ -93,7 +93,7 @@ public static class InstalledConfiguration
         File.WriteAllText(Path.Combine(Path.GetDirectoryName(path)!, "setup.html"), $$"""
             <!doctype html><html lang="en"><meta charset="utf-8"><title>Open Thermal Print Agent setup</title>
             <style>body{font:18px system-ui;max-width:850px;margin:3em auto;padding:1em}input{width:100%;font:16px monospace;padding:10px}</style>
-            <h1>Open Thermal Print Agent</h1><p>Agent URL <code>http://127.0.0.1:17890</code></p>
+            <h1>Open Thermal Print Agent</h1><p>Agent URL <code>http://127.0.0.1:17890/api/v1</code></p>
             <p>Allowed site origins {{origins}}</p><label for="token">Local token — copy into your POS printer settings</label>
             <input id="token" readonly value="{{token}}" onclick="this.select()">
             <p>This token permits local printing. Keep this file private to your Windows account.</p>

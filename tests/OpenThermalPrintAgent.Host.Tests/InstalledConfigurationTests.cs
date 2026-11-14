@@ -20,7 +20,9 @@ public sealed class InstalledConfigurationTests : IDisposable
         Assert.Equal(new[] { "https://pos.example" }, options.AllowedOrigins);
         Assert.True(options.Security.RequireToken);
         Assert.False(options.Queue.Enabled);
-        Assert.Contains(options.Security.Token!, File.ReadAllText(Path.Combine(directory, "setup.html")));
+        var setup = File.ReadAllText(Path.Combine(directory, "setup.html"));
+        Assert.Contains(options.Security.Token!, setup);
+        Assert.Contains("Agent URL <code>http://127.0.0.1:17890/api/v1</code>", setup);
     }
 
     [Fact]

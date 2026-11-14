@@ -22,7 +22,7 @@ if ($setup.ExitCode -ne 0) { throw "Agent installation failed with exit code $($
 
 Use the same process-object wait when scripting the uninstaller. The installer starts the agent and checks its installation identity at `http://127.0.0.1:17890/api/v1/health`. A conflicting process on that port causes a visible installation error or a nonzero silent installer exit. Resolve the conflict and rerun setup. Setup only signals the installed agent belonging to the current user.
 
-Open **Open Thermal Print Agent Setup** from the Start menu. Copy the generated local token into your POS printer settings, configure the URL `http://127.0.0.1:17890`, select an installed Windows printer and print a test receipt. RabbitWarren stores this token on the current browser device. Each Windows user receives an independent token and configuration.
+Open **Open Thermal Print Agent Setup** from the Start menu. Copy the generated local token into your POS printer settings, configure the URL `http://127.0.0.1:17890/api/v1`, select an installed Windows printer and print a test receipt. RabbitWarren stores this token on the current browser device. Each Windows user receives an independent token and configuration.
 
 The setup information is a local HTML file. HTTP health responses contain an installation identifier and version. Tokens are available only in the current user's local configuration and setup file. Keep those files private.
 
