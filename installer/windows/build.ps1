@@ -10,6 +10,6 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Self-contained publish failed.' }
     & $Iscc "/DDefaultSiteOrigin=$DefaultSiteOrigin" installer/windows/open-thermal-print-agent.iss
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
-    Get-FileHash artifacts/installer/open-thermal-print-agent-0.3.0-win-x64.exe -Algorithm SHA256
+    Get-FileHash artifacts/installer/open-thermal-print-agent-0.4.0-win-x64.exe -Algorithm SHA256
 }
 finally { Pop-Location }

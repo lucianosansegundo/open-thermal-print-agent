@@ -17,7 +17,7 @@ using OpenThermalPrintAgent.Host.Configuration;
 using OpenThermalPrintAgent.Host.Json;
 using OpenThermalPrintAgent.Host.Queue;
 
-if (args.FirstOrDefault() is "--configure" or "--stop" or "--check" or "--connect")
+if (args.FirstOrDefault() is "--configure" or "--stop" or "--check" or "--connect" or "--approve-connection")
 {
     Environment.Exit(InstalledRuntime.Command(args));
 }
@@ -103,6 +103,8 @@ catch (Exception exception) when (installed)
 
 static void MapEndpoints(IEndpointRouteBuilder endpoints)
 {
+    endpoints.MapPost("/pairing/browser/start", (HttpRequest request, LocalConnection.BrowserStart body, LocalConnection connection) => connection.BeginBrowser(request, body));
+    endpoints.MapPost("/pairing/browser/complete", (HttpRequest request, LocalConnection.BrowserCompletion body, LocalConnection connection) => connection.CompleteBrowser(request, body));
     endpoints.MapPost("/pairing/complete", (HttpRequest request, LocalConnection.ConnectionRequest body, LocalConnection connection) =>
         connection.Complete(request, body));
     endpoints.MapGet("/health", (IConfiguration configuration) => Results.Ok(new

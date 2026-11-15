@@ -64,6 +64,14 @@ internal sealed class InstalledRuntime : IDisposable
                 if (!args.Contains("--no-open")) Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
                 return 0;
             }
+            if (args[0] == "--approve-connection")
+            {
+                if (args.Length != 2 || LocalConnection.RequestIdFromUri(args[1]) is null || Command(["--check"]) != 0) return 1;
+                var configuration = new ConfigurationBuilder().AddJsonFile(InstalledConfiguration.ConfigPath).Build();
+                var options = configuration.GetSection("Agent").Get<AgentOptions>()!;
+                var connection = new LocalConnection(InstalledConfiguration.DirectoryPath, configuration["InstallationId"], options);
+                return connection.ApproveBrowser(args[1], DateTimeOffset.UtcNow) ? 0 : 1;
+            }
             if (args[0] == "--stop")
             {
                 if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException();

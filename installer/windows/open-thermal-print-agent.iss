@@ -1,5 +1,5 @@
 #define MyAppName "Open Thermal Print Agent"
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "0.4.0"
 #ifndef DefaultSiteOrigin
   #define DefaultSiteOrigin ""
 #endif
@@ -32,6 +32,9 @@ Source: "..\..\artifacts\publish\OpenThermalPrintAgent.Host\*"; DestDir: "{app}"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "OpenThermalPrintAgent"; ValueData: """{app}\{#MyAppExeName}"" --installed"
+Root: HKCU; Subkey: "Software\Classes\open-thermal-print-agent"; ValueType: string; ValueData: "URL:Open Thermal Print Agent"
+Root: HKCU; Subkey: "Software\Classes\open-thermal-print-agent"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\open-thermal-print-agent\shell\open\command"; ValueType: string; ValueData: """{app}\{#MyAppExeName}"" --approve-connection ""%1"""
 
 [Icons]
 Name: "{group}\Open Thermal Print Agent"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--installed"
@@ -39,9 +42,6 @@ Name: "{group}\Open Thermal Print Agent Setup"; Filename: "{localappdata}\OpenTh
 Name: "{group}\Connect Open Thermal Print Agent"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--connect"
 Name: "{group}\Open Thermal Print Agent Health"; Filename: "http://127.0.0.1:17890/api/v1/health"
 Name: "{group}\Open Thermal Print Agent Logs"; Filename: "{localappdata}\OpenThermalPrintAgent\logs"
-
-[Run]
-Filename: "{app}\{#MyAppExeName}"; Parameters: "--connect"; Description: "Connect your POS in the default browser"; Flags: postinstall skipifsilent runhidden
 
 [Code]
 var
@@ -54,6 +54,18 @@ begin
     'Use the HTTPS address of your POS site, without a path. Existing configuration and token are preserved on upgrade. To change sites later, edit agent.json and restart the agent.');
   OriginPage.Add('Site origin', False);
   OriginPage.Values[0] := ExpandConstant('{param:SITEORIGIN|{#DefaultSiteOrigin}}');
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = OriginPage.ID) and
+    ((OriginPage.Values[0] <> '') or FileExists(ExpandConstant('{localappdata}\OpenThermalPrintAgent\agent.json')));
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if CurPageID = wpFinished then
+    WizardForm.FinishedLabel.Caption := 'The printer agent is ready. Return to RabbitWarren in your current browser and choose Connect. Then select your thermal printer and send a test print.';
 end;
 
 function ValidOrigin(Origin: String): Boolean;
@@ -93,8 +105,14 @@ begin
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ExistingProtocolCommand: String;
 begin
   Result := '';
+  if RegKeyExists(HKCU, 'Software\Classes\open-thermal-print-agent') then
+    if not RegQueryStringValue(HKCU, 'Software\Classes\open-thermal-print-agent\shell\open\command', '', ExistingProtocolCommand) or
+       (ExistingProtocolCommand <> ExpandConstant('"{app}\{#MyAppExeName}" --approve-connection "%1"')) then
+      Result := 'The open-thermal-print-agent protocol is registered to another application. Review that registration before installing.';
   if (OriginPage.Values[0] = '') and
      not FileExists(ExpandConstant('{localappdata}\OpenThermalPrintAgent\agent.json')) then
     Result := 'Enter a site origin, or provide /SITEORIGIN=https://your-pos.example when installing silently.';
@@ -130,11 +148,15 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   Startup: String;
+  ProtocolCommand: String;
 begin
   if CurUninstallStep = usUninstall then
   begin
     if not StopAgent(ExpandConstant('{app}\{#MyAppExeName}')) then
       RaiseException('The agent is still stopping. Complete pending jobs and retry uninstall.');
+    if RegQueryStringValue(HKCU, 'Software\Classes\open-thermal-print-agent\shell\open\command', '', ProtocolCommand) then
+      if ProtocolCommand = ExpandConstant('"{app}\{#MyAppExeName}" --approve-connection "%1"') then
+        RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\open-thermal-print-agent');
     if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'OpenThermalPrintAgent', Startup) then
       if Startup = ExpandConstant('"{app}\{#MyAppExeName}" --installed') then
         RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'OpenThermalPrintAgent');

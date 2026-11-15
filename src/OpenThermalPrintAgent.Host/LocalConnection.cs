@@ -9,6 +9,7 @@ namespace OpenThermalPrintAgent.Host;
 public sealed class LocalConnection(string directory, string? installationId, AgentOptions options)
 {
     private string HandoffPath => Path.Combine(directory, "connection.json");
+    private string BrowserPath => Path.Combine(directory, "browser-connection.json");
     private string MutexName => (OperatingSystem.IsWindows() ? @"Global\" : "") +
         "OpenThermalPrintAgent-connection-" + Hash(Path.GetFullPath(HandoffPath).ToUpperInvariant());
 
@@ -120,6 +121,105 @@ public sealed class LocalConnection(string directory, string? installationId, Ag
             throw;
         }
     }
+
+    public IResult BeginBrowser(HttpRequest request, BrowserStart body)
+    {
+        var pending = StartBrowser(request.Headers.Origin.ToString(), body.Secret, DateTimeOffset.UtcNow);
+        return pending is null ? Results.StatusCode(403) : Results.Ok(new
+        {
+            requestId = pending.RequestId,
+            protocolUrl = "open-thermal-print-agent://connect/" + pending.RequestId,
+            expiresAt = pending.ExpiresAt
+        });
+    }
+
+    internal BrowserGrant? StartBrowser(string origin, string? secret, DateTimeOffset now)
+    {
+        if (!TrustedBrowserOrigin(origin) || !IsHex(secret, 64) || string.IsNullOrWhiteSpace(installationId)) return null;
+        using var mutex = AcquireHandoffLock();
+        try
+        {
+            var pending = new BrowserGrant(installationId, Convert.ToHexString(RandomNumberGenerator.GetBytes(16)), Hash(secret!), origin, now.AddMinutes(5), false);
+            WriteBrowser(pending);
+            return pending;
+        }
+        finally { mutex.ReleaseMutex(); }
+    }
+
+    public static string? RequestIdFromUri(string uri)
+    {
+        const string prefix = "open-thermal-print-agent://connect/";
+        return uri.StartsWith(prefix, StringComparison.Ordinal) && IsHex(uri[prefix.Length..], 32)
+            ? uri[prefix.Length..] : null;
+    }
+
+    internal bool ApproveBrowser(string uri, DateTimeOffset now)
+    {
+        var requestId = RequestIdFromUri(uri);
+        if (requestId is null) return false;
+        using var mutex = AcquireHandoffLock();
+        try
+        {
+            var pending = ReadBrowser();
+            if (pending is null || pending.RequestId != requestId || !ValidBrowserGrant(pending, now)) return false;
+            WriteBrowser(pending with { Approved = true });
+            return true;
+        }
+        finally { mutex.ReleaseMutex(); }
+    }
+
+    public IResult CompleteBrowser(HttpRequest request, BrowserCompletion body)
+    {
+        var result = RedeemBrowser(request.Headers.Origin.ToString(), body.RequestId, body.Secret, DateTimeOffset.UtcNow);
+        return result.Status == 200 ? Results.Ok(new { token = result.Token }) : Results.StatusCode(result.Status);
+    }
+
+    internal (int Status, string? Token) RedeemBrowser(string origin, string? requestId, string? secret, DateTimeOffset now)
+    {
+        if (!TrustedBrowserOrigin(origin) || !IsHex(requestId, 32) || !IsHex(secret, 64)) return (403, null);
+        using var mutex = AcquireHandoffLock();
+        try
+        {
+            var pending = ReadBrowser();
+            if (pending is null || pending.RequestId != requestId || pending.Origin != origin ||
+                pending.InstallationId != installationId || !IsHex(pending.SecretHash, 64) ||
+                !CryptographicOperations.FixedTimeEquals(Convert.FromHexString(pending.SecretHash), Convert.FromHexString(Hash(secret!)))) return (403, null);
+            if (!ValidBrowserGrant(pending, now)) return (410, null);
+            if (!pending.Approved) return (202, null);
+            File.Delete(BrowserPath);
+            return (200, options.Security.Token);
+        }
+        finally { mutex.ReleaseMutex(); }
+    }
+
+    private bool TrustedBrowserOrigin(string origin) => options.Security.RequireToken && !string.IsNullOrWhiteSpace(options.Security.Token) &&
+        origin.StartsWith("https://", StringComparison.Ordinal) && options.AllowedOrigins.Contains(origin, StringComparer.Ordinal);
+
+    private bool ValidBrowserGrant(BrowserGrant pending, DateTimeOffset now) => pending.InstallationId == installationId &&
+        TrustedBrowserOrigin(pending.Origin) && pending.ExpiresAt > now && pending.ExpiresAt <= now.AddMinutes(5);
+
+    private BrowserGrant? ReadBrowser()
+    {
+        try { return File.Exists(BrowserPath) ? JsonSerializer.Deserialize<BrowserGrant>(File.ReadAllText(BrowserPath)) : null; }
+        catch (Exception exception) when (exception is IOException or JsonException) { return null; }
+    }
+
+    private void WriteBrowser(BrowserGrant grant)
+    {
+        Directory.CreateDirectory(directory);
+        var temporaryPath = BrowserPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(grant));
+            File.Move(temporaryPath, BrowserPath, overwrite: true);
+        }
+        finally { File.Delete(temporaryPath); }
+    }
+
+    private static bool IsHex(string? value, int length) => value?.Length == length && value.All(Uri.IsHexDigit);
+    internal sealed record BrowserGrant(string InstallationId, string RequestId, string SecretHash, string Origin, DateTimeOffset ExpiresAt, bool Approved);
+    public sealed record BrowserStart(string Secret);
+    public sealed record BrowserCompletion(string RequestId, string Secret);
 
     private static string Hash(string nonce) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(nonce)));
     private sealed record Handoff(string InstallationId, string NonceHash, string Origin, DateTimeOffset ExpiresAt);

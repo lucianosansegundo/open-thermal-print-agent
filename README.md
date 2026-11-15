@@ -12,6 +12,8 @@ MVP / experimental. A self-contained Windows installer provides per-user setup, 
 
 - Windows 10 or later for the initial printer adapter.
 - Customer installation uses the self-contained [Windows installer](docs/windows-installer.md), including sign-in startup and local token setup.
+
+With installer 0.4.0, return to RabbitWarren in your current browser after setup and select **Connect printer** in POS document settings. Approve opening the installed agent, choose your Windows thermal printer and send a test print. The browser keeps the connection secret locally and receives the print token after the installed app approves its one-use request. The RabbitWarren installer presets the production site and preserves existing configuration on upgrade. The legacy `--connect` helper and advanced manual HTTP setup remain available.
 - Development builds require the .NET 8 SDK.
 - An installed thermal printer driver or raw-capable printer queue.
 - A browser or POS frontend allowed by the agent CORS configuration.
