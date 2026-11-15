@@ -1,63 +1,30 @@
-# Windows Service Mode
+# Windows service mode
 
-Open Thermal Print Agent can run as a console application for development or as a Windows Service for persistent local deployments.
+The supported customer installer uses per-user sign-in startup. See [Windows installer](windows-installer.md).
 
-The first production-friendly persistent mode is Windows Service support. A tray application is still deferred because it requires a separate UI surface and installer flow.
+The host retains legacy Windows Service integration for deployments managed by an administrator. A service runs under its configured service account. Printer visibility and access must be verified for that account. Remove an existing service before migrating the same port to a per-user installation.
 
-## Publish
+Publish a separate service deployment, preserving the console/service host build:
 
 ```powershell
-dotnet publish src/OpenThermalPrintAgent.Host `
-  -c Release `
-  -r win-x64 `
-  --self-contained false `
-  -o artifacts/publish/OpenThermalPrintAgent.Host
+dotnet publish src/OpenThermalPrintAgent.Host -c Release -r win-x64 --self-contained true -p:OutputType=Exe -o artifacts/service
 ```
 
-## Install Service
+Configure explicit allowed origins and enable print token security in that deployment's `appsettings.json`. The `--installed` argument is reserved for per-user deployments. Service configuration remains alongside the service executable. Use a dedicated service account and validate access to its Windows print queues.
 
-Run PowerShell as Administrator:
-
-```powershell
-New-Service `
-  -Name "OpenThermalPrintAgent" `
-  -DisplayName "Open Thermal Print Agent" `
-  -Description "Local HTTP agent for thermal receipt printing." `
-  -BinaryPathName "C:\Path\To\OpenThermalPrintAgent.Host.exe" `
-  -StartupType Automatic
-```
-
-Start it:
+Run PowerShell as Administrator to register and start the service:
 
 ```powershell
+New-Service -Name OpenThermalPrintAgent -DisplayName 'Open Thermal Print Agent' -BinaryPathName '"C:\AgentService\OpenThermalPrintAgent.Host.exe"' -StartupType Automatic
 Start-Service OpenThermalPrintAgent
-```
-
-Check status:
-
-```powershell
-Get-Service OpenThermalPrintAgent
 Invoke-RestMethod http://127.0.0.1:17890/api/v1/health
 ```
 
-## Stop And Remove
-
-Run PowerShell as Administrator:
+To remove it, run PowerShell as Administrator:
 
 ```powershell
 Stop-Service OpenThermalPrintAgent
 sc.exe delete OpenThermalPrintAgent
 ```
 
-## Configuration
-
-Keep configuration next to the published executable or provide configuration through environment variables. The service still binds to `127.0.0.1` by default.
-
-For production-like use, enable print token security before running as a service.
-
-## Limitations
-
-- No tray UI yet.
-- No built-in installer yet.
-- Logs use the configured ASP.NET Core logging providers.
-- Operators must manage service install/uninstall manually until the installer issue is implemented.
+Administrators manage service upgrades, account permissions and logging providers themselves. The per-user installer manages its own startup registry value and leaves legacy Windows services under administrator control.
