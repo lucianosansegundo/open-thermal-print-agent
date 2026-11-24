@@ -74,6 +74,8 @@ Response:
     "name": "POS-80",
     "isDefault": true,
     "driverName": "POS-80",
+    "isVirtual": null,
+    "thermalClassification": "unknown",
     "portName": "USB002",
     "status": "idle",
     "isOnline": true,
@@ -84,6 +86,29 @@ Response:
 ```
 
 Printer status fields are best-effort diagnostics from the operating system. `isOnline=true` means the Windows queue appears usable; it does not guarantee that the printer has paper, that ESC/POS bytes are accepted by the driver, or that the device physically printed.
+
+Discovery metadata is optional and additive: `driverName?: string`, `isVirtual?: boolean`,
+and `thermalClassification?: "likelyThermal" | "unknown" | "notThermal"`. Nullable fields
+may be returned as `null`. Older agents may omit the new fields. Treat missing/null classification
+as unknown, without repeating model heuristics in clients.
+
+- `isVirtual=true` identifies PDF, XPS, fax, OneNote or prompt-to-file queues. Null means not identified, not proven physical.
+- `likelyThermal` uses Windows `MarkingTechnology` values 16-19, or narrow receipt model families: Epson TM-T20/T70/T82/T88/T90 and TM-m10/m30, Star TSP100/143/650/654/700/743, Citizen CT-S310/601/651/801/851, and exact Xprinter XP-80/XP-80C model tokens (also when the vendor prefix is omitted). Vendor names alone, generic drivers and arbitrary POS queue names are insufficient.
+- `notThermal` identifies virtual queues or explicit non-thermal marking technologies. Explicit technology takes precedence over model-name hints.
+- `unknown` remains available for manual selection. Do not hide all unrecognized printers. Virtual queues remain in the API list and clients may exclude them from recommendations.
+
+Thermal technology includes label printers and does **not** establish ESC/POS compatibility.
+The existing `capabilities` array is retained for compatibility and describes the agent's legacy
+print path, not verified device capabilities. Neither it nor discovery classification should
+automatically approve a printer: require model/protocol validation and an explicit test print.
+
+WMI metadata is best effort. Missing properties are ignored; if enumeration fails, the Windows
+spooler provides queue names with unknown status and best-effort classification. Driver/default/
+online details may then be unavailable. If both Windows APIs fail, enumeration still reports an
+error; clients should retain their saved/manual printer selection and offer retry rather than
+interpret this as no installed printers.
+
+Technology values follow [Microsoft Win32_Printer documentation](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-printer).
 
 ## POST /api/v1/print/test
 

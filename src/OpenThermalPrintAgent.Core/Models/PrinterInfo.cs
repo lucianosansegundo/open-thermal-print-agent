@@ -8,6 +8,10 @@ public sealed record PrinterInfo
 
     public string? DriverName { get; init; }
 
+    public bool? IsVirtual { get; init; }
+
+    public string? ThermalClassification { get; init; }
+
     public string? PortName { get; init; }
 
     public string? Status { get; init; }

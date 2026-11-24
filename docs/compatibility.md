@@ -1,5 +1,14 @@
 # Compatibility
 
+## Printer Discovery
+
+Printer discovery provides optional `isVirtual` and `thermalClassification` hints alongside
+the existing `driverName`. These hints are recommendations, not protocol detection: even a
+thermal label printer may require ZPL or another non-ESC/POS language. Epson or Zebra vendor
+names alone are not thermal receipt evidence. Unknown printers must remain manually selectable;
+PDF/XPS/fax queues should not be recommended. Validate the exact printer model and test output
+before enabling production printing. See [API discovery metadata](api.md#get-apiv1printers).
+
 ESC/POS is a de facto standard. Printers often implement slightly different command sets, code pages, cut behavior, drawer behavior, and image/QR/barcode support.
 
 Raw spool success means the agent wrote bytes to the operating system printer queue. It does not guarantee that paper moved, text rendered correctly, or the cutter/drawer physically triggered.
