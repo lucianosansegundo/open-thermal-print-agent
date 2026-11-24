@@ -35,6 +35,7 @@ Assert-Contract ($config.dotnetSdkVersion -cmatch '^8\.0\.[0-9]+$' -and $config.
 Assert-Contract ($config.innoSetupUrl -ceq "https://github.com/jrsoftware/issrc/releases/download/is-$($config.innoSetupVersion.Replace('.', '_'))/innosetup-$($config.innoSetupVersion).exe") 'Versioned official Inno Setup download.'
 Assert-Contract ($config.innoSetupSha256 -cmatch '^[a-f0-9]{64}$') 'Inno Setup SHA-256 pin.'
 $origin = [uri]$config.rabbitWarrenStagingOrigin
+Assert-Contract ($iss -notmatch '(?<!Suppressible)\bMsgBox\(' -and $iss.Contains('SuppressibleMsgBox(')) 'Custom validation errors honor silent installer suppression.'
 Assert-Contract ($iss.Contains("#if Ver != EncodeVer($($config.innoSetupVersion.Replace('.', ',')))")) 'Compiler preprocessor enforces the exact pinned engine version.'
 Assert-Contract ($origin.Scheme -ceq 'https' -and $origin.AbsolutePath -ceq '/' -and $origin.UserInfo -eq '' -and $origin.Query -eq '' -and $origin.Fragment -eq '' -and $config.rabbitWarrenStagingOrigin -ceq $origin.GetLeftPart([UriPartial]::Authority)) 'Canonical exact HTTPS staging origin.'
 Assert-Contract ($config.rabbitWarrenStagingOrigin -ceq 'https://d2vfhhw5ryvsll.cloudfront.net') 'Only the reviewed RabbitWarren staging site is preset.'

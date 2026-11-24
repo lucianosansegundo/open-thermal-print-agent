@@ -28,9 +28,10 @@ function Assert-True([bool]$Condition, [string]$Message) {
 }
 
 function Invoke-Setup([string]$Path, [string]$Extra = '') {
+    Write-Host "Running $(Split-Path $Path -Leaf) $Extra"
     # Do not use Start-Process -Wait: setup launches a long-running child agent.
     $process = Start-Process -FilePath $Path -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART $Extra" -WindowStyle Hidden -PassThru
-    if (-not $process.WaitForExit(120000)) { throw 'Setup/uninstall timed out.' }
+    if (-not $process.WaitForExit(120000)) { throw "Setup/uninstall timed out: $(Split-Path $Path -Leaf)." }
     return $process.ExitCode
 }
 

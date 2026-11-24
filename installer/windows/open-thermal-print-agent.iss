@@ -124,7 +124,7 @@ begin
   begin
     if (OriginPage.Values[0] = '') and FileExists(ExpandConstant('{localappdata}\OpenThermalPrintAgent\agent.json')) then Exit;
     Result := ValidOrigin(OriginPage.Values[0]);
-    if not Result then MsgBox('Enter an exact HTTP(S) site origin without a path, credentials or wildcard.', mbError, MB_OK);
+    if not Result then SuppressibleMsgBox('Enter an exact HTTP(S) site origin without a path, credentials or wildcard.', mbError, MB_OK, IDOK);
   end;
 end;
 
