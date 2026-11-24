@@ -1,4 +1,7 @@
 #define MyAppName "Open Thermal Print Agent"
+#if Ver != EncodeVer(6,5,4)
+  #error This release requires Inno Setup 6.5.4
+#endif
 #ifndef MyAppVersion
   #define MyAppVersion "0.4.0-preview.1"
 #endif
