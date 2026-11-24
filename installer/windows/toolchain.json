@@ -1,0 +1,9 @@
+{
+  "releaseVersion": "0.4.0-preview.1",
+  "dotnetSdkVersion": "8.0.428",
+  "runtimeFrameworkVersion": "8.0.34",
+  "innoSetupVersion": "6.5.4",
+  "innoSetupUrl": "https://github.com/jrsoftware/issrc/releases/download/is-6_5_4/innosetup-6.5.4.exe",
+  "innoSetupSha256": "fa73bf47a4da250d185d07561c2bfda387e5e20db77e4570004cf6a133cc10b1",
+  "rabbitWarrenStagingOrigin": "https://d2vfhhw5ryvsll.cloudfront.net"
+}

@@ -6,12 +6,15 @@ The MVP is Windows-first and targets installed ESC/POS-compatible thermal printe
 
 ## Status
 
-MVP / experimental. The project is suitable for development and hardware validation, not production deployment without additional security, installer, monitoring, and printer compatibility work.
+MVP / experimental. The planned `v0.4.0-preview.1` Windows release is **unsigned** and intended for controlled evaluation, not unattended production. A self-contained Windows installer provides per-user setup, token security and hidden sign-in startup. The included .NET 8 runtime reached end of support on November 10, 2026. Deployments require printer-specific validation and operational monitoring. See [Windows installer releases and checksums](docs/windows-installer.md).
 
 ## Requirements
 
 - Windows 10 or later for the initial printer adapter.
-- .NET 8 SDK or later.
+- Customer installation uses the self-contained [Windows installer](docs/windows-installer.md), including sign-in startup and local token setup.
+
+With installer `0.4.0-preview.1`, return to your POS in your current browser after setup and select **Connect printer** in POS document settings. Approve opening the installed agent, choose your Windows thermal printer and send a test print. The browser keeps the connection secret locally and receives the print token after the installed app approves its one-use request. The separate **RabbitWarren staging** installer presets only `https://d2vfhhw5ryvsll.cloudfront.net` on a fresh installation, with no technical origin field. The generic installer asks for an exact POS origin. Both preserve existing configuration and tokens on upgrade; installing a different preset does not switch an existing installation's site. Neither release asset presets production. The legacy `--connect` helper and advanced manual HTTP setup remain available.
+- Development builds require the .NET 8 SDK.
 - An installed thermal printer driver or raw-capable printer queue.
 - A browser or POS frontend allowed by the agent CORS configuration.
 
@@ -30,6 +33,8 @@ http://127.0.0.1:17890
 ```
 
 Configuration is in `src/OpenThermalPrintAgent.Host/appsettings.json`.
+
+Installed deployments use `%LOCALAPPDATA%\OpenThermalPrintAgent\agent.json`, with mandatory generated token security and explicit site origins. The installer preserves this configuration across upgrades and reinstalls.
 
 Print endpoints can optionally require a local token. Token security is disabled by default for development. Enable `Agent:Security:RequireToken` and set `Agent:Security:Token` to require either `X-OpenThermalPrintAgent-Token` or `Authorization: Bearer <token>` on print requests.
 

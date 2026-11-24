@@ -1,0 +1,23 @@
+EXPERIMENTAL PREVIEW - UNSIGNED SOFTWARE
+
+Open Thermal Print Agent 0.4.0 preview is intended for controlled evaluation,
+not an unattended production deployment. Validate your printer, browser,
+pairing and upgrade procedure before use. There is no automatic updater.
+
+This installer is not code-signed. Obtain it only from the project's GitHub
+release and verify the published SHA-256 before running it. A checksum detects
+changed bytes; it does not establish publisher identity or replace a signature.
+If Windows or your organization blocks it, contact the operator or administrator.
+Do not disable antivirus, firewall, browser security or certificate validation.
+
+The included .NET 8 runtime reached the end of support on November 10, 2026.
+This preview is not a supported long-term production runtime deployment.
+
+Setup installs for the current Windows user, without administrator rights.
+The hidden agent starts when that user signs in. It listens only on loopback.
+No firewall exception or trusted certificate is required or installed.
+
+The RabbitWarren staging preset permits only its exact staging site on a new
+installation. The generic installer asks for one exact POS site origin.
+Neither installer changes existing site origins or resets an existing token.
+To switch sites, ask the operator to review the existing local configuration.
