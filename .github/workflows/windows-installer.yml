@@ -1,0 +1,104 @@
+name: Windows installer preview
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v0.4.0-preview.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Experimental installer version (no release is published)
+        required: true
+        default: 0.4.0-preview.1
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-smoke:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet-pinned
+      DOTNET_MULTILEVEL_LOOKUP: '0'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      RUNNER_ENVIRONMENT: ${{ runner.environment }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Validate release inputs and packaging contracts
+        id: metadata
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./installer/windows/test.ps1
+          $config = Get-Content installer/windows/toolchain.json -Raw | ConvertFrom-Json
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.Substring(1) } elseif ($env:REQUESTED_VERSION) { $env:REQUESTED_VERSION } else { $config.releaseVersion }
+          if ($version -cnotmatch '^0\.4\.0-preview\.[1-9][0-9]*$') { throw 'Only 0.4.0 experimental preview versions are supported.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "sdk=$($config.dotnetSdkVersion)" >> $env:GITHUB_OUTPUT
+
+      - name: Install exact isolated .NET SDK
+        uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: ${{ steps.metadata.outputs.sdk }}
+
+      - name: Download and verify pinned Inno Setup compiler
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $config = Get-Content installer/windows/toolchain.json -Raw | ConvertFrom-Json
+          $download = Join-Path $env:RUNNER_TEMP 'innosetup.exe'
+          Invoke-WebRequest -Uri $config.innoSetupUrl -OutFile $download
+          if ((Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash -ine $config.innoSetupSha256) { throw 'Inno Setup download checksum mismatch.' }
+          $directory = Join-Path $env:RUNNER_TEMP 'inno-pinned'
+          $setup = Start-Process -FilePath $download -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', '/NOICONS', ('/DIR="{0}"' -f $directory)) -WindowStyle Hidden -PassThru
+          if (-not $setup.WaitForExit(120000)) { throw 'Inno Setup compiler installation timed out.' }
+          if ($setup.ExitCode -ne 0) { throw "Inno Setup compiler installation failed ($($setup.ExitCode))." }
+
+      - name: Restore, test, self-contained publish and compile both presets
+        env:
+          RELEASE_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          ./installer/windows/build.ps1 -Version $env:RELEASE_VERSION -Preset all -Iscc (Join-Path $env:RUNNER_TEMP 'inno-pinned/ISCC.exe')
+
+      - name: Smoke install, upgrade, preserve pairing and uninstall (ephemeral runner only)
+        env:
+          RELEASE_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          ./installer/windows/smoke-test.ps1 -Version $env:RELEASE_VERSION
+
+      - name: Upload validated release assets (not a GitHub Release)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-installer-${{ steps.metadata.outputs.version }}
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+          path: |
+            artifacts/windows-installer/${{ steps.metadata.outputs.version }}/*.exe
+            artifacts/windows-installer/${{ steps.metadata.outputs.version }}/*.sha256
+            artifacts/windows-installer/${{ steps.metadata.outputs.version }}/*-build-inputs.zip
+            artifacts/windows-installer/${{ steps.metadata.outputs.version }}/build-manifest.json
+            artifacts/windows-installer/${{ steps.metadata.outputs.version }}/SHA256SUMS
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-test-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: artifacts/test-results/*.trx

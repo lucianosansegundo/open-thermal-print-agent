@@ -1,7 +1,33 @@
 #define MyAppName "Open Thermal Print Agent"
-#define MyAppVersion "0.4.0"
+#ifndef MyAppVersion
+  #define MyAppVersion "0.4.0-preview.1"
+#endif
+#ifndef PresetName
+  #define PresetName "generic"
+#endif
+#if (PresetName != "generic") && (PresetName != "rabbitwarren-staging")
+  #error Unsupported installer preset
+#endif
+#if PresetName == "rabbitwarren-staging"
+  #define PresetSuffix "-rabbitwarren-staging"
+#else
+  #define PresetSuffix ""
+#endif
 #ifndef DefaultSiteOrigin
-  #define DefaultSiteOrigin ""
+  #if PresetName == "rabbitwarren-staging"
+    #define DefaultSiteOrigin "https://d2vfhhw5ryvsll.cloudfront.net"
+  #else
+    #define DefaultSiteOrigin ""
+  #endif
+#endif
+#if (PresetName == "rabbitwarren-staging") && (DefaultSiteOrigin != "https://d2vfhhw5ryvsll.cloudfront.net")
+  #error The staging artifact must contain only the reviewed staging preset
+#endif
+#ifndef PublishDir
+  #define PublishDir "..\..\artifacts\publish\OpenThermalPrintAgent.Host"
+#endif
+#ifndef InstallerOutputDir
+  #define InstallerOutputDir "..\..\artifacts\installer"
 #endif
 #define MyAppExeName "OpenThermalPrintAgent.Host.exe"
 
@@ -9,13 +35,17 @@
 AppId={{B907D6FA-4C33-40D1-8BB6-3C6C0A86B6B4}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+VersionInfoVersion=0.4.0.0
+AppComments=Experimental preview - unsigned
 AppPublisher=Open Thermal Print Agent contributors
 DefaultDirName={localappdata}\Programs\Open Thermal Print Agent
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 DisableDirPage=yes
-OutputDir=..\..\artifacts\installer
-OutputBaseFilename=open-thermal-print-agent-{#MyAppVersion}-win-x64
+OutputDir={#InstallerOutputDir}
+OutputBaseFilename=open-thermal-print-agent-{#MyAppVersion}{#PresetSuffix}-win-x64
+LicenseFile=..\..\LICENSE
+InfoBeforeFile=preview-warning.txt
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -28,7 +58,7 @@ RestartApplications=no
 SetupMutex=OpenThermalPrintAgentInstaller
 
 [Files]
-Source: "..\..\artifacts\publish\OpenThermalPrintAgent.Host\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "OpenThermalPrintAgent"; ValueData: """{app}\{#MyAppExeName}"" --installed"
@@ -65,7 +95,7 @@ end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpFinished then
-    WizardForm.FinishedLabel.Caption := 'The printer agent is ready. Return to RabbitWarren in your current browser and choose Connect. Then select your thermal printer and send a test print.';
+    WizardForm.FinishedLabel.Caption := 'The experimental printer agent is ready. Return to your POS site in your current browser and choose Connect. Then select your thermal printer and send a test print.';
 end;
 
 function ValidOrigin(Origin: String): Boolean;
