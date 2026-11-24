@@ -28,11 +28,9 @@ jobs:
       run:
         shell: pwsh
     env:
-      DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet-pinned
       DOTNET_MULTILEVEL_LOOKUP: '0'
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_NOLOGO: '1'
-      RUNNER_ENVIRONMENT: ${{ runner.environment }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -53,6 +51,8 @@ jobs:
 
       - name: Install exact isolated .NET SDK
         uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet-pinned
         with:
           dotnet-version: ${{ steps.metadata.outputs.sdk }}
 
@@ -76,6 +76,7 @@ jobs:
 
       - name: Smoke install, upgrade, preserve pairing and uninstall (ephemeral runner only)
         env:
+          RUNNER_ENVIRONMENT: ${{ runner.environment }}
           RELEASE_VERSION: ${{ steps.metadata.outputs.version }}
         run: |
           ./installer/windows/smoke-test.ps1 -Version $env:RELEASE_VERSION
