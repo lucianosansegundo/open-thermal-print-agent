@@ -29,9 +29,10 @@ try {
         throw "Use .NET SDK $($toolchain.dotnetSdkVersion). CI installs this exact SDK; see docs/windows-installer.md."
     }
     if (-not (Test-Path -LiteralPath $Iscc -PathType Leaf)) { throw 'Inno Setup compiler not found; supply -Iscc.' }
-    $compilerVersion = (Get-Item -LiteralPath $Iscc).VersionInfo.ProductVersion
-    if ($compilerVersion -notmatch ('^' + [regex]::Escape($toolchain.innoSetupVersion) + '(\D|$)')) {
-        throw "Use Inno Setup $($toolchain.innoSetupVersion), not $compilerVersion."
+    # ISCC's PE ProductVersion can be 0.0.0.0; its banner reports the compiler engine version.
+    $compilerBanner = (& $Iscc '/?' 2>&1 | Out-String)
+    if ($compilerBanner -notmatch ('\bInno Setup ' + [regex]::Escape($toolchain.innoSetupVersion) + '(\D|$)')) {
+        throw "Use Inno Setup $($toolchain.innoSetupVersion). Compiler reported: $compilerBanner"
     }
     $commit = & git rev-parse HEAD
     if ($LASTEXITCODE -ne 0) { throw 'Cannot determine source commit.' }
