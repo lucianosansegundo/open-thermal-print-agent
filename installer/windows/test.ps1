@@ -28,6 +28,7 @@ $warning = Get-Content (Join-Path $PSScriptRoot 'preview-warning.txt') -Raw
 
 Assert-Contract ($config.releaseVersion -cmatch '^0\.4\.0-preview\.[1-9][0-9]*$') 'Explicit experimental preview version.'
 Assert-Contract ($config.releaseVersion.Split('-')[0] -ceq $projectProps.Project.PropertyGroup.Version) 'Installer base version matches the agent project.'
+Assert-Contract ($workflow -cmatch ('(?m)^        default: ' + [regex]::Escape($config.releaseVersion) + '$')) 'Workflow dispatch version default matches the toolchain release.'
 foreach ($name in @('build.ps1', 'smoke-test.ps1', 'open-thermal-print-agent.iss')) {
     Assert-Contract ((Get-Content (Join-Path $PSScriptRoot $name) -Raw).Contains($config.releaseVersion)) "Version default synchronized: $name."
 }
